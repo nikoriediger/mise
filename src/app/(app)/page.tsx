@@ -18,8 +18,9 @@ async function Recipes() {
 
   if (recipes.length === 0) {
     return (
-      <div className="py-16 text-center">
-        <p className="mb-4 text-muted">{t.recipes.empty}</p>
+      <div className="card mx-auto flex max-w-md flex-col items-center gap-4 px-6 py-14 text-center">
+        <span className="flex size-16 items-center justify-center rounded-2xl bg-gradient-to-br from-sage-100 to-mint-200 text-3xl shadow-soft">🥣</span>
+        <p className="text-muted">{t.recipes.empty}</p>
         <Link href="/recipes/new" className="btn-primary">{t.recipes.emptyCta}</Link>
       </div>
     );

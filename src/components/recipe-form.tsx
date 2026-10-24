@@ -2,8 +2,10 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { AnimatePresence, motion } from "framer-motion";
 import { useRef, useState } from "react";
 import { saveRecipe, type ImageState } from "@/app/actions/recipes";
+import { spring } from "@/components/motion";
 import { recipeFormTools } from "@/features/registry";
 import { compressImage, extensionFor } from "@/lib/image-compress";
 import { createClient } from "@/lib/supabase/client";
@@ -26,11 +28,12 @@ type Fields = {
   prep_minutes: string;
   cook_minutes: string;
   ingredients: string;
-  steps: string;
   notes: string;
   category: string;
   tags: string;
 };
+
+type Step = { key: string; text: string };
 
 type Props = {
   cookbookId: string;
@@ -40,6 +43,7 @@ type Props = {
 export function RecipeForm({ cookbookId, recipe }: Props) {
   const [recipeId] = useState(() => recipe?.id ?? crypto.randomUUID());
   const [fields, setFields] = useState<Fields>(() => toFields(recipe));
+  const [steps, setSteps] = useState<Step[]>(() => toSteps(recipe?.steps));
   const [images, setImages] = useState<FormImage[]>(() =>
     (recipe?.images ?? []).map((img) => ({
       key: img.id,
@@ -88,6 +92,7 @@ export function RecipeForm({ cookbookId, recipe }: Props) {
 
   function prefill(draft: Partial<RecipeDraft>, sourceFiles: File[]) {
     setFields((f) => ({ ...f, ...toFields(draft) }));
+    if (draft.steps) setSteps(toSteps(draft.steps));
     if (sourceFiles.length) addFiles(sourceFiles, "source");
   }
 
@@ -141,7 +146,7 @@ export function RecipeForm({ cookbookId, recipe }: Props) {
         id: recipeId,
         cookbookId,
         isNew: !recipe,
-        draft: toDraft(fields),
+        draft: toDraft(fields, steps),
         images: imageStates,
       });
       // On success the action redirects, so we only get here on error.
@@ -156,50 +161,47 @@ export function RecipeForm({ cookbookId, recipe }: Props) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      <h1 className="font-serif text-3xl font-semibold">{recipe ? t.form.editTitle : t.form.newTitle}</h1>
+      <h1 className="font-serif text-3xl font-semibold text-forest-900 sm:text-4xl">
+        {recipe ? t.form.editTitle : t.form.newTitle}
+      </h1>
 
       {!recipe && recipeFormTools.map((Tool, i) => <Tool key={i} onPrefill={prefill} />)}
 
-      <div>
-        <label className="label" htmlFor="title">{t.form.title}</label>
-        <input id="title" className="input text-lg" value={fields.title} onChange={set("title")} placeholder={t.form.titlePlaceholder} required />
-      </div>
-
-      <div className="grid grid-cols-3 gap-3">
-        <NumberField id="servings" label={t.form.servings} value={fields.servings} onChange={set("servings")} />
-        <NumberField id="prep_minutes" label={t.form.prepMinutes} value={fields.prep_minutes} onChange={set("prep_minutes")} />
-        <NumberField id="cook_minutes" label={t.form.cookMinutes} value={fields.cook_minutes} onChange={set("cook_minutes")} />
-      </div>
-
-      <div className="grid gap-6 md:grid-cols-2">
+      <section className="card space-y-4 p-5 sm:p-6">
         <div>
-          <label className="label" htmlFor="ingredients">{t.form.ingredients}</label>
-          <textarea id="ingredients" className="input min-h-48 font-mono text-sm" value={fields.ingredients} onChange={set("ingredients")} />
-          <p className="hint">{t.form.ingredientsHint}</p>
+          <label className="label" htmlFor="title">{t.form.title}</label>
+          <input id="title" className="input font-serif text-xl" value={fields.title} onChange={set("title")} placeholder={t.form.titlePlaceholder} required />
         </div>
-        <div>
-          <label className="label" htmlFor="steps">{t.form.steps}</label>
-          <textarea id="steps" className="input min-h-48" value={fields.steps} onChange={set("steps")} />
-          <p className="hint">{t.form.stepsHint}</p>
+        <div className="grid grid-cols-3 gap-3">
+          <NumberField id="servings" label={t.form.servings} value={fields.servings} onChange={set("servings")} />
+          <NumberField id="prep_minutes" label={t.form.prepMinutes} value={fields.prep_minutes} onChange={set("prep_minutes")} />
+          <NumberField id="cook_minutes" label={t.form.cookMinutes} value={fields.cook_minutes} onChange={set("cook_minutes")} />
         </div>
-      </div>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <div>
+            <label className="label" htmlFor="category">{t.form.category}</label>
+            <input id="category" className="input" value={fields.category} onChange={set("category")} placeholder={t.form.categoryPlaceholder} />
+          </div>
+          <div>
+            <label className="label" htmlFor="tags">{t.form.tags}</label>
+            <input id="tags" className="input" value={fields.tags} onChange={set("tags")} />
+            <p className="hint">{t.form.tagsHint}</p>
+          </div>
+        </div>
+      </section>
 
-      <div>
+      <section className="card p-5 sm:p-6">
+        <label className="label" htmlFor="ingredients">{t.form.ingredients}</label>
+        <textarea id="ingredients" className="input min-h-48 [field-sizing:content]" value={fields.ingredients} onChange={set("ingredients")} />
+        <p className="hint">{t.form.ingredientsHint}</p>
+      </section>
+
+      <StepsEditor steps={steps} onChange={setSteps} />
+
+      <section className="card p-5 sm:p-6">
         <label className="label" htmlFor="notes">{t.form.notes}</label>
-        <textarea id="notes" className="input min-h-24" value={fields.notes} onChange={set("notes")} />
-      </div>
-
-      <div className="grid gap-3 sm:grid-cols-2">
-        <div>
-          <label className="label" htmlFor="category">{t.form.category}</label>
-          <input id="category" className="input" value={fields.category} onChange={set("category")} placeholder={t.form.categoryPlaceholder} />
-        </div>
-        <div>
-          <label className="label" htmlFor="tags">{t.form.tags}</label>
-          <input id="tags" className="input" value={fields.tags} onChange={set("tags")} />
-          <p className="hint">{t.form.tagsHint}</p>
-        </div>
-      </div>
+        <textarea id="notes" className="input min-h-24 [field-sizing:content]" value={fields.notes} onChange={set("notes")} />
+      </section>
 
       <ImageSection
         title={t.form.photos}
@@ -222,11 +224,81 @@ export function RecipeForm({ cookbookId, recipe }: Props) {
 
       {error && <p className="text-sm text-red-700">{error}</p>}
 
-      <div className="sticky bottom-0 -mx-4 flex gap-3 border-t border-line bg-cream/95 px-4 py-3 backdrop-blur">
+      <div className="glass sticky bottom-3 z-20 flex gap-3 rounded-2xl px-4 py-3 shadow-lifted">
         <button className="btn-primary" disabled={pending}>{pending ? t.common.saving : t.common.save}</button>
         <Link href={recipe ? `/recipes/${recipe.id}` : "/"} className="btn-secondary">{t.common.cancel}</Link>
       </div>
     </form>
+  );
+}
+
+function StepsEditor({ steps, onChange }: { steps: Step[]; onChange: (steps: Step[]) => void }) {
+  const update = (key: string, text: string) => onChange(steps.map((s) => (s.key === key ? { ...s, text } : s)));
+  const remove = (key: string) => onChange(steps.filter((s) => s.key !== key));
+  const move = (from: number, to: number) => {
+    const next = [...steps];
+    [next[from], next[to]] = [next[to], next[from]];
+    onChange(next);
+  };
+
+  return (
+    <section>
+      <h2 className="label px-1">{t.form.steps}</h2>
+      <ol className="space-y-3">
+        <AnimatePresence initial={false}>
+          {steps.map((step, i) => (
+            <motion.li
+              key={step.key}
+              layout
+              initial={{ opacity: 0, y: -8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, x: -24 }}
+              transition={spring}
+              className="card flex gap-3 p-3 sm:p-4"
+            >
+              <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-forest-700 font-serif font-semibold text-cream shadow-soft">
+                {i + 1}
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="mb-1 text-xs font-semibold uppercase tracking-[0.14em] text-moss-600">{t.recipes.step(i + 1)}</p>
+                <textarea
+                  className="input min-h-20 [field-sizing:content]"
+                  value={step.text}
+                  placeholder={t.form.stepPlaceholder}
+                  aria-label={t.recipes.step(i + 1)}
+                  onChange={(e) => update(step.key, e.target.value)}
+                />
+              </div>
+              <div className="flex shrink-0 flex-col gap-1">
+                <IconButton label={t.form.moveUp} disabled={i === 0} onClick={() => move(i, i - 1)}>↑</IconButton>
+                <IconButton label={t.form.moveDown} disabled={i === steps.length - 1} onClick={() => move(i, i + 1)}>↓</IconButton>
+                <IconButton label={t.form.removeStep} danger onClick={() => remove(step.key)}>✕</IconButton>
+              </div>
+            </motion.li>
+          ))}
+        </AnimatePresence>
+      </ol>
+      <button type="button" className="btn-secondary mt-3" onClick={() => onChange([...steps, newStep("")])}>
+        + {t.form.addStep}
+      </button>
+    </section>
+  );
+}
+
+function IconButton(props: { label: string; onClick: () => void; disabled?: boolean; danger?: boolean; children: React.ReactNode }) {
+  return (
+    <button
+      type="button"
+      title={props.label}
+      aria-label={props.label}
+      disabled={props.disabled}
+      onClick={props.onClick}
+      className={`flex size-8 items-center justify-center rounded-lg text-sm transition-colors disabled:opacity-30 ${
+        props.danger ? "text-red-700 hover:bg-red-50" : "text-forest-800 hover:bg-sage-100"
+      }`}
+    >
+      {props.children}
+    </button>
   );
 }
 
@@ -252,36 +324,45 @@ function ImageSection(props: {
   const otherRole: ImageRole = props.role === "gallery" ? "source" : "gallery";
 
   return (
-    <section>
+    <section className="card p-5 sm:p-6">
       <h2 className="label">{props.title}</h2>
       <div className="flex flex-wrap gap-3">
         {props.images.map((img) => (
-          <div key={img.key} className="card w-36 overflow-hidden">
-            <div className="relative aspect-square bg-line">
+          <motion.div
+            key={img.key}
+            layout
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            whileHover={{ y: -3, boxShadow: "var(--shadow-lifted)" }}
+            transition={spring}
+            style={{ boxShadow: "var(--shadow-soft)" }}
+            className="w-36 overflow-hidden rounded-2xl border border-white/70 bg-cream"
+          >
+            <div className="relative aspect-square bg-sage-100">
               <Image src={img.url} alt="" fill unoptimized className="object-cover" />
               {img.is_cover && (
-                <span className="absolute left-1 top-1 rounded bg-accent px-1.5 py-0.5 text-xs text-white">{t.form.cover}</span>
+                <span className="absolute left-1.5 top-1.5 rounded-full bg-forest-700 px-2 py-0.5 text-xs text-cream shadow-soft">{t.form.cover}</span>
               )}
             </div>
             <div className="flex flex-col p-1 text-xs">
               {props.role === "gallery" && !img.is_cover && (
-                <button type="button" className="rounded px-2 py-1 text-left hover:bg-cream" onClick={() => props.onUpdate(img.key, { is_cover: true })}>
+                <button type="button" className="rounded-lg px-2 py-1 text-left hover:bg-sage-100" onClick={() => props.onUpdate(img.key, { is_cover: true })}>
                   {t.form.setCover}
                 </button>
               )}
-              <button type="button" className="rounded px-2 py-1 text-left hover:bg-cream" onClick={() => props.onUpdate(img.key, { role: otherRole, is_cover: false })}>
+              <button type="button" className="rounded-lg px-2 py-1 text-left hover:bg-sage-100" onClick={() => props.onUpdate(img.key, { role: otherRole, is_cover: false })}>
                 {otherRole === "gallery" ? t.form.moveToGallery : t.form.moveToSources}
               </button>
-              <button type="button" className="rounded px-2 py-1 text-left text-red-700 hover:bg-red-50" onClick={() => props.onRemove(img.key)}>
+              <button type="button" className="rounded-lg px-2 py-1 text-left text-red-700 hover:bg-red-50" onClick={() => props.onRemove(img.key)}>
                 {t.form.remove}
               </button>
             </div>
-          </div>
+          </motion.div>
         ))}
         <button
           type="button"
           onClick={() => inputRef.current?.click()}
-          className="flex aspect-square w-36 flex-col items-center justify-center gap-1 rounded-xl border-2 border-dashed border-line text-sm text-muted transition hover:border-accent hover:text-accent"
+          className="flex aspect-square w-36 flex-col items-center justify-center gap-1 rounded-2xl border-2 border-dashed border-sage-300 bg-sage-50/60 text-sm text-muted transition-all duration-300 ease-spring hover:-translate-y-1 hover:border-moss-500 hover:bg-mint-100/60 hover:text-forest-800"
         >
           <span className="text-2xl">+</span>
           {props.addLabel}
@@ -310,14 +391,21 @@ function toFields(r?: Partial<Omit<RecipeDraft, "notes" | "category"> & { notes:
     prep_minutes: num(r?.prep_minutes),
     cook_minutes: num(r?.cook_minutes),
     ingredients: (r?.ingredients ?? []).join("\n"),
-    steps: (r?.steps ?? []).join("\n"),
     notes: r?.notes ?? "",
     category: r?.category ?? "",
     tags: (r?.tags ?? []).join(", "),
   };
 }
 
-function toDraft(f: Fields): RecipeDraft {
+function newStep(text: string): Step {
+  return { key: crypto.randomUUID(), text };
+}
+
+function toSteps(steps?: string[]): Step[] {
+  return steps?.length ? steps.map(newStep) : [newStep("")];
+}
+
+function toDraft(f: Fields, steps: Step[]): RecipeDraft {
   const num = (s: string) => (s.trim() === "" ? null : Number(s));
   return {
     title: f.title,
@@ -325,7 +413,7 @@ function toDraft(f: Fields): RecipeDraft {
     prep_minutes: num(f.prep_minutes),
     cook_minutes: num(f.cook_minutes),
     ingredients: f.ingredients.split("\n"),
-    steps: f.steps.split("\n"),
+    steps: steps.map((s) => s.text),
     notes: f.notes,
     category: f.category,
     tags: f.tags.split(","),

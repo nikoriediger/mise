@@ -5,41 +5,109 @@
   --font-serif: var(--font-fraunces);
 }
 
+/* Soft-green palette (Tailwind v4 defines the theme here instead of tailwind.config.ts) */
 @theme {
-  --color-cream: #faf7f2;
-  --color-ink: #2b2620;
-  --color-muted: #7a6f63;
-  --color-line: #e8e0d4;
-  --color-accent: #b4532a;
-  --color-accent-dark: #943f1c;
+  --color-sage-50: #f4f7f1;
+  --color-sage-100: #e8efe3;
+  --color-sage-200: #d4e1cb;
+  --color-sage-300: #b9cdab;
+  --color-sage-400: #9bb68a;
+  --color-matcha-300: #c5d9a4;
+  --color-matcha-400: #a9c47f;
+  --color-matcha-500: #8aab5c;
+  --color-mint-100: #e4f3ea;
+  --color-mint-200: #c9e7d5;
+  --color-moss-500: #5e7a4a;
+  --color-moss-600: #4b6539;
+  --color-forest-700: #2f5236;
+  --color-forest-800: #243f2a;
+  --color-forest-900: #1a2e1f;
+
+  /* Semantic tokens used throughout the app */
+  --color-cream: #fbfaf4;
+  --color-ink: var(--color-forest-900);
+  --color-muted: #5d6f5c;
+  --color-line: #dce6d4;
+  --color-accent: var(--color-forest-700);
+  --color-accent-dark: var(--color-forest-800);
+
+  --shadow-soft: 0 1px 2px rgb(26 46 31 / 0.04), 0 4px 16px -4px rgb(26 46 31 / 0.08);
+  --shadow-lifted: 0 2px 4px rgb(26 46 31 / 0.05), 0 18px 40px -12px rgb(26 46 31 / 0.22);
+  --shadow-glow: 0 0 0 1px rgb(138 171 92 / 0.35), 0 8px 32px -8px rgb(138 171 92 / 0.55);
+
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 body {
-  background: var(--color-cream);
   color: var(--color-ink);
+  background-color: var(--color-sage-50);
+  background-image:
+    radial-gradient(60rem 40rem at 10% -10%, rgb(201 231 213 / 0.55), transparent 60%),
+    radial-gradient(50rem 35rem at 110% 10%, rgb(197 217 164 / 0.35), transparent 60%);
+  background-attachment: fixed;
+}
+
+::selection {
+  background: var(--color-matcha-300);
+  color: var(--color-forest-900);
 }
 
 @utility input {
-  @apply w-full rounded-lg border border-line bg-white px-3 py-2 text-base outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/20;
+  @apply w-full rounded-xl border border-line bg-cream px-3.5 py-2.5 text-base text-ink shadow-[inset_0_1px_2px_rgb(26_46_31/0.04)] outline-none transition placeholder:text-muted/60 focus:border-moss-500 focus:bg-white focus:ring-4 focus:ring-matcha-300/40;
 }
 @utility label {
-  @apply mb-1 block text-sm font-medium text-ink;
+  @apply mb-1.5 block text-sm font-medium text-forest-800;
 }
 @utility hint {
   @apply mt-1 text-xs text-muted;
 }
 @utility btn {
-  @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-60;
+  @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium transition-[transform,box-shadow,background-color,color] duration-300 ease-spring hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-60;
 }
 @utility btn-primary {
-  @apply btn bg-accent text-white hover:bg-accent-dark;
+  @apply btn bg-forest-700 text-cream shadow-soft hover:bg-forest-800 hover:shadow-lifted;
 }
 @utility btn-secondary {
-  @apply btn border border-line bg-white text-ink hover:bg-cream;
+  @apply btn border border-line bg-cream text-forest-800 shadow-soft hover:border-sage-300 hover:bg-white hover:shadow-lifted;
 }
 @utility btn-danger {
-  @apply btn border border-red-200 bg-white text-red-700 hover:bg-red-50;
+  @apply btn border border-red-200 bg-cream text-red-700 shadow-soft hover:bg-red-50 hover:shadow-lifted;
 }
 @utility card {
-  @apply rounded-xl border border-line bg-white;
+  @apply rounded-2xl border border-white/70 bg-cream shadow-soft;
+}
+@utility glass {
+  @apply border border-white/60 bg-cream/60 backdrop-blur-xl backdrop-saturate-150;
+}
+
+/* Animated glowing border for highlighted zones */
+@property --glow-angle {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+
+@keyframes glow-spin {
+  to {
+    --glow-angle: 360deg;
+  }
+}
+
+@keyframes glow-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgb(138 171 92 / 0.0), 0 8px 30px -10px rgb(138 171 92 / 0.45); }
+  50% { box-shadow: 0 0 0 6px rgb(138 171 92 / 0.12), 0 12px 44px -8px rgb(138 171 92 / 0.65); }
+}
+
+@utility glow-border {
+  border: 2px solid transparent;
+  background:
+    linear-gradient(var(--color-cream), var(--color-cream)) padding-box,
+    conic-gradient(from var(--glow-angle), var(--color-matcha-300), var(--color-mint-200), var(--color-moss-500), var(--color-matcha-500), var(--color-matcha-300)) border-box;
+  animation: glow-spin 6s linear infinite, glow-pulse 3s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .glow-border {
+    animation: none;
+  }
 }

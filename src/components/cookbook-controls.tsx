@@ -2,6 +2,7 @@
 
 import { useState, useSyncExternalStore, useTransition } from "react";
 import { createInvite, removeMember, revokeInvite } from "@/app/actions/cookbook";
+import { ConfirmDialog } from "@/components/dialog";
 import type { Invite } from "@/lib/data";
 import { formatDate, t } from "@/i18n";
 
@@ -77,18 +78,26 @@ function CopyButton({ text }: { text: string }) {
 }
 
 export function RemoveMemberButton({ userId }: { userId: string }) {
+  const [open, setOpen] = useState(false);
   const [pending, startTransition] = useTransition();
   return (
-    <button
-      className="btn-danger px-2 py-1 text-xs"
-      disabled={pending}
-      onClick={() => {
-        if (confirm(t.cookbook.removeConfirm)) {
-          startTransition(() => removeMember(userId));
+    <>
+      <button className="btn-danger px-2 py-1 text-xs" disabled={pending} onClick={() => setOpen(true)}>
+        {t.cookbook.removeMember}
+      </button>
+      <ConfirmDialog
+        open={open}
+        message={t.cookbook.removeConfirm}
+        confirmLabel={t.cookbook.removeMember}
+        pending={pending}
+        onCancel={() => setOpen(false)}
+        onConfirm={() =>
+          startTransition(async () => {
+            await removeMember(userId);
+            setOpen(false);
+          })
         }
-      }}
-    >
-      {t.cookbook.removeMember}
-    </button>
+      />
+    </>
   );
 }
