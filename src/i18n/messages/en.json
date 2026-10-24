@@ -383,5 +383,15 @@
     "by": "by {name}",
     "printedOn": "As of {date}",
     "back": "Back to cookbook"
+  },
+  "translation": {
+    "translatedFrom": "Translated from {lang}",
+    "showOriginal": "Show original",
+    "showTranslation": "Show translation",
+    "from": {
+      "de": "German",
+      "en": "English",
+      "it": "Italian"
+    }
   }
 }

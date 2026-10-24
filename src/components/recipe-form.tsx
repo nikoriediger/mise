@@ -113,10 +113,11 @@ export function RecipeForm({ familyId, cookbooks, initialCollectionIds, recipe, 
     });
   }
 
-  function prefill(draft: Partial<RecipeDraft>, sourceFiles: File[]) {
+  function prefill(draft: Partial<RecipeDraft>, sourceFiles: File[], galleryFiles: File[] = []) {
     setFields((f) => ({ ...f, ...toFields(draft), language: draft.language ?? f.language }));
     if (draft.steps) setSteps(toSteps(draft.steps));
     if (sourceFiles.length) addFiles(sourceFiles, "source");
+    if (galleryFiles.length) addFiles(galleryFiles, "gallery");
   }
 
   async function handleSubmit(e: React.FormEvent) {

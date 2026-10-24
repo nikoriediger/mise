@@ -383,5 +383,15 @@
     "by": "von {name}",
     "printedOn": "Stand: {date}",
     "back": "Zurück zum Kochbuch"
+  },
+  "translation": {
+    "translatedFrom": "Übersetzt aus dem {lang}",
+    "showOriginal": "Original anzeigen",
+    "showTranslation": "Übersetzung anzeigen",
+    "from": {
+      "de": "Deutschen",
+      "en": "Englischen",
+      "it": "Italienischen"
+    }
   }
 }

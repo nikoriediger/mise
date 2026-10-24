@@ -239,6 +239,17 @@ await as("00000000-0000-0000-0000-00000000000f", async () => {
 });
 
 // ---------------------------------------------------------------------------
+// Translations
+// ---------------------------------------------------------------------------
+await as(B, async () => {
+  ok(!(await tryQ(`insert into public.recipe_translations (recipe_id, language, title, source_updated_at) values ($1, 'it', 'Tiramisù di Papà', now())`, [rPapa])).error, "family members can store a translation");
+  ok((await rows(`delete from public.recipe_translations where recipe_id = $1 returning recipe_id`, [rPapa])).length === 0, "only the owner can delete translations");
+});
+await as("00000000-0000-0000-0000-00000000000f", async () => {
+  ok((await rows(`select recipe_id from public.recipe_translations`)).length === 0, "outsiders see no translations");
+});
+
+// ---------------------------------------------------------------------------
 // Outsider
 // ---------------------------------------------------------------------------
 const STRANGER = "00000000-0000-0000-0000-00000000000f";

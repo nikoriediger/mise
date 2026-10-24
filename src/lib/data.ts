@@ -291,6 +291,29 @@ export async function getRecipeNotes(recipe: Pick<RecipeWithImages, "id" | "fami
   }));
 }
 
+export type RecipeTranslation = {
+  title: string;
+  ingredients: string[];
+  steps: string[];
+  notes: string;
+  origin: string;
+  story: string;
+};
+
+/** An up-to-date stored translation of a recipe into a language, if there is one. */
+export async function getTranslation(recipe: Pick<Recipe, "id" | "updated_at" | "language">, language: string): Promise<RecipeTranslation | null> {
+  if (!recipe.language || recipe.language === language) return null;
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("recipe_translations")
+    .select("title, ingredients, steps, notes, origin, story, source_updated_at")
+    .eq("recipe_id", recipe.id)
+    .eq("language", language)
+    .maybeSingle();
+  if (!data || new Date(data.source_updated_at).getTime() !== new Date(recipe.updated_at).getTime()) return null;
+  return { title: data.title, ingredients: data.ingredients, steps: data.steps, notes: data.notes, origin: data.origin, story: data.story };
+}
+
 export type BookRecipe = Recipe & { coverUrl: string | null };
 
 /** All recipes of a cookbook with their full content, for the printable book. */

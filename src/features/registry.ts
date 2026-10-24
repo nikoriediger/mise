@@ -2,8 +2,18 @@ import type { ComponentType } from "react";
 import type { RecipeDraft } from "@/lib/types";
 
 export type RecipeFormToolProps = {
-  /** Fills the form with the given values and adds the files as original-recipe scans. */
-  onPrefill: (draft: Partial<RecipeDraft>, sourceFiles: File[]) => void;
+  /** Fills the form with the given values and adds the files as original-recipe scans (and dish photos). */
+  onPrefill: (draft: Partial<RecipeDraft>, sourceFiles: File[], galleryFiles?: File[]) => void;
+};
+
+export type RecipeViewToolProps = {
+  recipeId: string;
+  /** Language the recipe is written in (if known). */
+  recipeLanguage: "de" | "en" | "it" | null;
+  uiLocale: "de" | "en" | "it";
+  /** A stored, up-to-date translation into the UI language exists. */
+  hasTranslation: boolean;
+  showingOriginal: boolean;
 };
 
 export type IngredientActionProps = {
@@ -23,3 +33,9 @@ export const recipeFormTools: ComponentType<RecipeFormToolProps>[] = [];
  * Client Components). Empty in the core app.
  */
 export const ingredientActions: ComponentType<IngredientActionProps>[] = [];
+
+/**
+ * Optional tools shown at the top of a recipe page (must be Client Components),
+ * e.g. a translator. Empty in the core app.
+ */
+export const recipeViewTools: ComponentType<RecipeViewToolProps>[] = [];

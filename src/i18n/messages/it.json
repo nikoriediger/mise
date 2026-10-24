@@ -383,5 +383,15 @@
     "by": "di {name}",
     "printedOn": "Aggiornato al {date}",
     "back": "Torna al ricettario"
+  },
+  "translation": {
+    "translatedFrom": "Tradotto dal{lang}",
+    "showOriginal": "Mostra originale",
+    "showTranslation": "Mostra traduzione",
+    "from": {
+      "de": " tedesco",
+      "en": "l'inglese",
+      "it": "l'italiano"
+    }
   }
 }

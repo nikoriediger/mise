@@ -18,24 +18,29 @@ import { Loading } from "@/components/loading";
 import { PrintButton, ShareButton } from "@/components/recipe-actions";
 import { AddToShoppingButton, PlanRecipeButton } from "@/components/recipe-plan-shop";
 import { IngredientsCard, ScaleProvider } from "@/components/recipe-scale";
-import { getCookLog, getMyCookbooks, getRecipe, getRecipeNotes } from "@/lib/data";
+import { recipeViewTools } from "@/features/registry";
+import { getCookLog, getMyCookbooks, getRecipe, getRecipeNotes, getTranslation } from "@/lib/data";
 import { appName } from "@/i18n/config";
 import { localeFlags } from "@/i18n/config";
 import { getI18n } from "@/i18n/server";
 
-export default function RecipePage({ params }: PageProps<"/[lang]/recipes/[id]">) {
+export default function RecipePage({ params, searchParams }: PageProps<"/[lang]/recipes/[id]">) {
   return (
     <Suspense fallback={<Loading />}>
-      <RecipeDetail params={params} />
+      <RecipeDetail params={params} searchParams={searchParams} />
     </Suspense>
   );
 }
 
-async function RecipeDetail({ params }: Pick<PageProps<"/[lang]/recipes/[id]">, "params">) {
+async function RecipeDetail({ params, searchParams }: Pick<PageProps<"/[lang]/recipes/[id]">, "params" | "searchParams">) {
   const { t, f, locale } = await getI18n();
-  const { id } = await params;
-  const [recipe, myCookbooks] = await Promise.all([getRecipe(id), getMyCookbooks()]);
-  if (!recipe) notFound();
+  const [{ id }, { original }] = await Promise.all([params, searchParams]);
+  const [stored, myCookbooks] = await Promise.all([getRecipe(id), getMyCookbooks()]);
+  if (!stored) notFound();
+  // Show a stored translation into the UI language, unless the original was requested
+  const showingOriginal = original === "1";
+  const translation = await getTranslation(stored, locale);
+  const recipe = translation && !showingOriginal ? { ...stored, ...translation } : stored;
   const [notes, cookLog] = await Promise.all([getRecipeNotes(recipe), getCookLog(recipe)]);
   const memories = recipe.images.filter((img) => img.role === "memory");
 
@@ -83,6 +88,24 @@ async function RecipeDetail({ params }: Pick<PageProps<"/[lang]/recipes/[id]">, 
                 {localeFlags[recipe.language]} {t.lang[recipe.language]}
               </p>
             )}
+            {translation && stored.language && (
+              <p className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 rounded-xl bg-mint-100/80 px-3 py-2 text-sm text-forest-800 print:hidden">
+                <span>🌍 {f(t.translation.translatedFrom, { lang: t.translation.from[stored.language] })}</span>
+                <Link href={showingOriginal ? `/recipes/${stored.id}` : `/recipes/${stored.id}?original=1`} className="font-medium underline underline-offset-2">
+                  {showingOriginal ? t.translation.showTranslation : t.translation.showOriginal}
+                </Link>
+              </p>
+            )}
+            {recipeViewTools.map((Tool, i) => (
+              <Tool
+                key={i}
+                recipeId={stored.id}
+                recipeLanguage={stored.language}
+                uiLocale={locale}
+                hasTranslation={Boolean(translation)}
+                showingOriginal={showingOriginal}
+              />
+            ))}
             {!recipe.canEdit && (
               <p className="mt-2 flex items-center gap-1.5 text-sm text-muted">
                 <Avatar url={recipe.owner_avatar} name={recipe.owner_name} size="sm" /> {f(t.recipes.byOwner, { name: recipe.owner_name || "…" })} <span className="print:hidden">· 🔒 {t.recipes.readOnly}</span>
