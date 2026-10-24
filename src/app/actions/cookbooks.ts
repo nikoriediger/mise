@@ -15,6 +15,7 @@ function readForm(formData: FormData) {
   return { name, emoji: COOKBOOK_EMOJIS.includes(emoji) ? emoji : COOKBOOK_EMOJIS[0] };
 }
 
+/** Creates a new collection. */
 export async function createCookbook(_prev: CookbookFormState, formData: FormData): Promise<CookbookFormState> {
   const user = await getCurrentUser();
   const family = await getPrimaryFamily();
@@ -48,13 +49,11 @@ export async function updateCookbook(_prev: CookbookFormState, formData: FormDat
   return {};
 }
 
-/** Deletes an own, empty cookbook. The last own cookbook can't be deleted. */
+/** Deletes an own collection. Its recipes stay; the main cookbook can't be deleted. */
 export async function deleteCookbook(id: string): Promise<{ error: string } | undefined> {
-  const mine = await getMyCookbooks();
-  const cookbook = mine.find((b) => b.id === id);
+  const cookbook = (await getMyCookbooks()).find((b) => b.id === id);
   if (!cookbook) return { error: t.common.error };
-  if (mine.length <= 1) return { error: t.cookbooks.cannotDeleteLast };
-  if (cookbook.recipe_count > 0) return { error: t.cookbooks.cannotDeleteNonEmpty };
+  if (cookbook.is_default) return { error: t.cookbooks.cannotDeleteMain };
 
   const supabase = await createClient();
   const { data, error } = await supabase.from("cookbooks").delete().eq("id", id).select("id");

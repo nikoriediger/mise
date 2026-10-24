@@ -21,13 +21,14 @@ async function EditRecipe({ params }: Pick<PageProps<"/recipes/[id]/edit">, "par
   const [recipe, mine] = await Promise.all([getRecipe(id), getMyCookbooks()]);
   if (!recipe?.canEdit) notFound();
 
-  // Recipes can only move between own cookbooks of the same family (images live in the family folder).
-  const cookbooks = mine.filter((b) => b.family_id === recipe.cookbook.family_id);
+  const cookbooks = mine.filter((b) => b.family_id === recipe.family_id);
+  const inCollections = recipe.cookbooks.filter((b) => b.is_mine && !b.is_default).map((b) => b.id);
   return (
     <RecipeForm
       key={recipe.updated_at}
+      familyId={recipe.family_id}
       cookbooks={cookbooks}
-      initialCookbookId={recipe.cookbook_id}
+      initialCollectionIds={inCollections}
       recipe={recipe}
     />
   );

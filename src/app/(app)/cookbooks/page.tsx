@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import { CookbookGrid, CreateCookbookButton } from "@/components/cookbook-controls";
 import { Loading } from "@/components/loading";
-import { getCookbooks } from "@/lib/data";
+import { getCookbooksWithCovers } from "@/lib/data";
 import { t } from "@/i18n";
 
 export const metadata: Metadata = { title: t.cookbooks.title };
@@ -16,7 +16,7 @@ export default function CookbooksPage() {
 }
 
 async function Cookbooks() {
-  const cookbooks = await getCookbooks();
+  const cookbooks = await getCookbooksWithCovers();
   const mine = cookbooks.filter((b) => b.is_mine);
   const others = cookbooks.filter((b) => !b.is_mine);
 

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { CookbookBadge } from "@/components/cookbook-badge";
+import { CookbookMembershipButton } from "@/components/cookbook-membership-button";
 import { CopyRecipeButton } from "@/components/copy-recipe-button";
 import { DeleteRecipeButton } from "@/components/delete-recipe-button";
 import { ImageGallery } from "@/components/image-gallery";
@@ -21,6 +22,9 @@ async function RecipeDetail({ params }: Pick<PageProps<"/recipes/[id]">, "params
   const { id } = await params;
   const [recipe, myCookbooks] = await Promise.all([getRecipe(id), getMyCookbooks()]);
   if (!recipe) notFound();
+  const ownBooks = myCookbooks.filter((b) => b.family_id === recipe.family_id);
+  const myCollectionsWithRecipe = recipe.cookbooks.filter((b) => b.is_mine && !b.is_default).map((b) => b.id);
+  const collectionCount = recipe.cookbooks.filter((b) => !b.is_default).length;
 
   const gallery = recipe.images
     .filter((img) => img.role === "gallery")
@@ -40,19 +44,27 @@ async function RecipeDetail({ params }: Pick<PageProps<"/recipes/[id]">, "params
             <p className="mb-1 text-xs font-semibold uppercase tracking-[0.18em] text-moss-600">{recipe.category}</p>
           )}
           <h1 className="font-serif text-4xl font-semibold leading-tight text-forest-900 sm:text-5xl">{recipe.title}</h1>
-          <p className="mt-3 flex flex-wrap items-center gap-2 text-sm text-muted">
-            {t.recipes.fromCookbook} <CookbookBadge cookbook={recipe.cookbook} link className="text-sm" />
-            {!recipe.canEdit && recipe.cookbook.owner_name && <span>· {t.recipes.byOwner(recipe.cookbook.owner_name)}</span>}
+          <p className="mt-2 text-sm text-muted">
+            {recipe.canEdit ? null : <>👤 {t.recipes.byOwner(recipe.owner_name || "…")} · 🔒 {t.recipes.readOnly}</>}
           </p>
+          {recipe.cookbooks.length > 0 && (
+            <div className="mt-3 flex flex-wrap items-center gap-1.5 text-sm text-muted">
+              <span className="mr-1">{t.recipes.inCookbooks}:</span>
+              {recipe.cookbooks.map((b) => (
+                <CookbookBadge key={b.id} cookbook={b} link />
+              ))}
+            </div>
+          )}
         </div>
         <div className="flex flex-wrap gap-2">
+          <CookbookMembershipButton recipeId={recipe.id} isMine={recipe.canEdit} cookbooks={ownBooks} selected={myCollectionsWithRecipe} />
           {recipe.canEdit ? (
             <>
-              <Link href={`/recipes/${recipe.id}/edit`} className="btn-secondary">{t.common.edit}</Link>
-              <DeleteRecipeButton id={recipe.id} />
+              <Link href={`/recipes/${recipe.id}/edit`} className="btn-primary">{t.common.edit}</Link>
+              <DeleteRecipeButton id={recipe.id} collectionCount={collectionCount} />
             </>
           ) : (
-            <CopyRecipeButton recipeId={recipe.id} cookbooks={myCookbooks} primary />
+            <CopyRecipeButton recipeId={recipe.id} />
           )}
         </div>
       </div>

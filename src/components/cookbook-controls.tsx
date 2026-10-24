@@ -1,12 +1,13 @@
 "use client";
 
 import { motion, type Variants } from "framer-motion";
+import Image from "next/image";
 import Link from "next/link";
 import { useActionState, useState, useTransition } from "react";
 import { createCookbook, deleteCookbook, updateCookbook, type CookbookFormState } from "@/app/actions/cookbooks";
 import { ConfirmDialog, Dialog } from "@/components/dialog";
 import { spring } from "@/components/motion";
-import { COOKBOOK_EMOJIS, type Cookbook } from "@/lib/types";
+import { COOKBOOK_EMOJIS, type Cookbook, type CookbookWithCover } from "@/lib/types";
 import { t } from "@/i18n";
 
 const grid: Variants = { hidden: {}, show: { transition: { staggerChildren: 0.07 } } };
@@ -15,7 +16,7 @@ const item: Variants = {
   show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 260, damping: 24 } },
 };
 
-export function CookbookGrid({ cookbooks, showOwner }: { cookbooks: Cookbook[]; showOwner?: boolean }) {
+export function CookbookGrid({ cookbooks, showOwner }: { cookbooks: CookbookWithCover[]; showOwner?: boolean }) {
   return (
     <motion.ul variants={grid} initial="hidden" animate="show" className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
       {cookbooks.map((b) => (
@@ -27,15 +28,25 @@ export function CookbookGrid({ cookbooks, showOwner }: { cookbooks: Cookbook[]; 
             transition={spring}
             style={{ boxShadow: "var(--shadow-soft)" }}
           >
-            <Link href={`/cookbooks/${b.id}`} className="group flex items-center gap-4 rounded-2xl border border-white/70 bg-cream p-4">
-              <span className="flex size-14 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-sage-100 to-mint-200 text-3xl transition-transform duration-500 ease-spring group-hover:rotate-[-6deg] group-hover:scale-110">
+            <Link href={`/cookbooks/${b.id}`} className="group block overflow-hidden rounded-2xl border border-white/70 bg-cream">
+              <span className="relative block aspect-[16/7] overflow-hidden bg-gradient-to-br from-sage-100 via-mint-100 to-matcha-300/40">
+                {b.coverUrl && (
+                  <Image src={b.coverUrl} alt="" fill unoptimized className="object-cover transition-transform duration-700 ease-out group-hover:scale-110" />
+                )}
+                {b.is_default && b.is_mine && (
+                  <span className="glass absolute right-2 top-2 rounded-full px-2.5 py-0.5 text-xs font-medium text-forest-800">{t.cookbooks.main}</span>
+                )}
+              </span>
+              <span className="flex items-center gap-3 p-4 pt-0">
+              <span className="-mt-7 flex size-14 shrink-0 items-center justify-center rounded-2xl border-4 border-cream bg-gradient-to-br from-sage-100 to-mint-200 text-3xl shadow-soft transition-transform duration-500 ease-spring group-hover:rotate-[-6deg] group-hover:scale-110">
                 {b.emoji}
               </span>
-              <span className="min-w-0">
+              <span className="min-w-0 pt-2">
                 <span className="block truncate font-serif text-lg font-semibold text-forest-900">{b.name}</span>
                 <span className="block text-sm text-muted">
                   {[showOwner && b.owner_name && t.recipes.byOwner(b.owner_name), t.recipes.count(b.recipe_count)].filter(Boolean).join(" · ")}
                 </span>
+              </span>
               </span>
             </Link>
           </motion.div>
@@ -116,10 +127,14 @@ export function EditCookbookButton({ cookbook }: { cookbook: Cookbook }) {
         <form action={action}>
           <CookbookFields cookbook={cookbook} state={state} pending={pending} />
         </form>
-        <div className="mt-4 border-t border-line pt-4">
-          <button className="btn-danger w-full" onClick={() => setConfirmDelete(true)}>{t.common.delete}</button>
-          {deleteError && <p className="mt-2 text-sm text-red-700">{deleteError}</p>}
-        </div>
+        {cookbook.is_default ? (
+          <p className="mt-4 border-t border-line pt-4 text-sm text-muted">{t.cookbooks.mainHint}</p>
+        ) : (
+          <div className="mt-4 border-t border-line pt-4">
+            <button className="btn-danger w-full" onClick={() => setConfirmDelete(true)}>{t.common.delete}</button>
+            {deleteError && <p className="mt-2 text-sm text-red-700">{deleteError}</p>}
+          </div>
+        )}
       </Dialog>
       <ConfirmDialog
         open={confirmDelete}

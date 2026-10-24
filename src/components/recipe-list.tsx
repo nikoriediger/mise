@@ -3,8 +3,8 @@
 import { AnimatePresence, motion, type Variants } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
-import { useMemo, useState } from "react";
-import { CookbookBadge } from "@/components/cookbook-badge";
+import { useMemo, useState, useTransition } from "react";
+import { removeFromCookbook } from "@/app/actions/recipes";
 import { spring } from "@/components/motion";
 import type { Cookbook, RecipeListItem } from "@/lib/types";
 import { t } from "@/i18n";
@@ -26,14 +26,15 @@ type Props = {
   cookbooks: ListCookbook[];
   /** Shows the title, count and cookbook filter (off when embedded in a cookbook page). */
   standalone?: boolean;
+  /** Collection id: shows a remove button on each card. */
+  removableFrom?: string;
 };
 
-export function RecipeList({ recipes, cookbooks, standalone = true }: Props) {
+export function RecipeList({ recipes, cookbooks, standalone = true, removableFrom }: Props) {
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState<string | null>(null);
   const [cookbookId, setCookbookId] = useState<string | null>(null);
-
-  const cookbookById = useMemo(() => new Map(cookbooks.map((b) => [b.id, b])), [cookbooks]);
+  const [removed, setRemoved] = useState<string[]>([]);
   const categories = useMemo(
     () => [...new Set(recipes.map((r) => r.category).filter((c): c is string => Boolean(c)))].sort(),
     [recipes],
@@ -43,8 +44,9 @@ export function RecipeList({ recipes, cookbooks, standalone = true }: Props) {
   const q = query.trim().toLowerCase();
   const filtered = recipes.filter(
     (r) =>
+      !removed.includes(r.id) &&
       (!category || r.category === category) &&
-      (!cookbookId || r.cookbook_id === cookbookId) &&
+      (!cookbookId || r.cookbook_ids.includes(cookbookId)) &&
       (!q || r.title.toLowerCase().includes(q) || r.tags.some((tag) => tag.toLowerCase().includes(q))),
   );
 
@@ -103,8 +105,12 @@ export function RecipeList({ recipes, cookbooks, standalone = true }: Props) {
         >
           <AnimatePresence>
             {filtered.map((recipe) => (
-              <motion.li key={recipe.id} variants={card} layout>
-                <RecipeCard recipe={recipe} cookbook={standalone ? cookbookById.get(recipe.cookbook_id) : undefined} />
+              <motion.li key={recipe.id} variants={card} layout exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.2 } }}>
+                <RecipeCard
+                  recipe={recipe}
+                  removableFrom={removableFrom}
+                  onRemoved={() => setRemoved((ids) => [...ids, recipe.id])}
+                />
               </motion.li>
             ))}
           </AnimatePresence>
@@ -146,10 +152,11 @@ function FilterChips<T extends string | null>(props: {
   );
 }
 
-function RecipeCard({ recipe, cookbook }: { recipe: RecipeListItem; cookbook?: ListCookbook }) {
+function RecipeCard({ recipe, removableFrom, onRemoved }: { recipe: RecipeListItem; removableFrom?: string; onRemoved: () => void }) {
+  const [pending, startTransition] = useTransition();
   return (
     <motion.div
-      className="h-full rounded-2xl"
+      className="relative h-full rounded-2xl"
       whileHover={{ y: -6, boxShadow: "var(--shadow-lifted)" }}
       whileTap={{ scale: 0.98 }}
       transition={spring}
@@ -181,10 +188,34 @@ function RecipeCard({ recipe, cookbook }: { recipe: RecipeListItem; cookbook?: L
         </div>
         <div className="space-y-1.5 p-3.5">
           <h2 className="line-clamp-2 font-medium leading-snug text-forest-900">{recipe.title}</h2>
-          {cookbook && <CookbookBadge cookbook={cookbook} />}
+          {!recipe.is_mine && recipe.owner_name && (
+            <span className="inline-flex max-w-full items-center gap-1 rounded-full bg-sage-100/90 px-2.5 py-0.5 text-xs font-medium text-forest-800">
+              👤 <span className="truncate">{recipe.owner_name}</span> <span title={t.recipes.readOnly}>🔒</span>
+            </span>
+          )}
           {totalTime(recipe) && <p className="text-xs text-muted">⏱ {totalTime(recipe)}</p>}
         </div>
       </Link>
+      {removableFrom && (
+        <motion.button
+          type="button"
+          title={t.recipes.removeFromCookbook}
+          aria-label={t.recipes.removeFromCookbook}
+          disabled={pending}
+          whileHover={{ scale: 1.12 }}
+          whileTap={{ scale: 0.9 }}
+          transition={spring}
+          onClick={() =>
+            startTransition(async () => {
+              const result = await removeFromCookbook(removableFrom, recipe.id);
+              if (!result?.error) onRemoved();
+            })
+          }
+          className="glass absolute right-2 top-2 flex size-8 items-center justify-center rounded-full text-sm text-forest-900 shadow-soft hover:bg-red-50 hover:text-red-700"
+        >
+          ✕
+        </motion.button>
+      )}
     </motion.div>
   );
 }

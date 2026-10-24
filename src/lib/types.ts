@@ -2,7 +2,8 @@ export type ImageRole = "gallery" | "source";
 
 export type Recipe = {
   id: string;
-  cookbook_id: string;
+  owner_id: string;
+  family_id: string;
   title: string;
   servings: number | null;
   prep_minutes: number | null;
@@ -26,7 +27,10 @@ export type RecipeImage = {
   url: string;
 };
 
-/** A cookbook as shown in the UI, with its owner's display name. */
+/**
+ * A cookbook as shown in the UI. The main cookbook (is_default) automatically
+ * contains all of its owner's recipes; other cookbooks are collections.
+ */
 export type Cookbook = {
   id: string;
   family_id: string;
@@ -34,21 +38,32 @@ export type Cookbook = {
   owner_name: string;
   name: string;
   emoji: string;
+  is_default: boolean;
   is_mine: boolean;
   recipe_count: number;
 };
 
+export type CookbookWithCover = Cookbook & { coverUrl: string | null };
+
 export type RecipeWithImages = Recipe & {
   images: RecipeImage[];
-  cookbook: Cookbook;
-  /** True if the current user owns the recipe's cookbook. */
+  owner_name: string;
+  /** True if the current user owns the recipe. */
   canEdit: boolean;
+  /** All cookbooks (visible to the user) that contain this recipe. */
+  cookbooks: Cookbook[];
 };
 
 export type RecipeListItem = Pick<
   Recipe,
-  "id" | "title" | "category" | "tags" | "prep_minutes" | "cook_minutes" | "cookbook_id"
-> & { coverUrl: string | null };
+  "id" | "title" | "category" | "tags" | "prep_minutes" | "cook_minutes" | "owner_id" | "family_id"
+> & {
+  owner_name: string;
+  is_mine: boolean;
+  /** Cookbooks containing the recipe (main cookbook of the owner + collections). */
+  cookbook_ids: string[];
+  coverUrl: string | null;
+};
 
 /** The editable fields of a recipe, as used by the form (and form extensions). */
 export type RecipeDraft = {

@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { getCurrentUser, getMyCookbooks, getRecipe, isUuid } from "@/lib/data";
+import { getCurrentUser, getFamilyMemberships, getMyCookbooks, getRecipe, isUuid } from "@/lib/data";
 import { IMAGE_BUCKET, type ImageRole, type RecipeDraft } from "@/lib/types";
 import { t } from "@/i18n";
 
@@ -18,29 +18,33 @@ export type ImageState = {
 
 export type SaveRecipeInput = {
   id: string;
-  /** Family folder the images were uploaded to: <familyId>/<recipeId>/... */
+  /** Family the recipe belongs to; images were uploaded to <familyId>/<recipeId>/... */
   familyId: string;
-  /** The (own) cookbook the recipe is saved in. */
-  cookbookId: string;
   isNew: boolean;
   draft: RecipeDraft;
   images: ImageState[];
+  /** The user's collections (not the main cookbook) the recipe should be in. */
+  collectionIds: string[];
 };
 
-export type SaveRecipeResult = { error: string } | undefined;
+export type ActionResult = { error: string } | undefined;
 
 /**
- * Creates or updates a recipe and syncs its images. Image files are uploaded
- * by the browser beforehand to <familyId>/<recipeId>/..., this action only
- * records them (and deletes images that were removed).
+ * Creates or updates a recipe, syncs its images and its collections. Image
+ * files are uploaded by the browser beforehand; this action only records them
+ * (and deletes images that were removed).
  */
-export async function saveRecipe(input: SaveRecipeInput): Promise<SaveRecipeResult> {
+export async function saveRecipe(input: SaveRecipeInput): Promise<ActionResult> {
   const user = await getCurrentUser();
-  const { id, familyId, cookbookId, isNew, images } = input;
+  const { id, familyId, isNew, images } = input;
 
-  const cookbook = (await getMyCookbooks()).find((b) => b.id === cookbookId);
-  if (!isUuid(id) || !cookbook || cookbook.family_id !== familyId) {
+  const families = await getFamilyMemberships();
+  if (!isUuid(id) || !families.some((f) => f.family_id === familyId)) {
     return { error: t.common.error };
+  }
+  if (!isNew) {
+    const existing = await getRecipe(id);
+    if (!existing?.canEdit || existing.family_id !== familyId) return { error: t.common.error };
   }
   const draft = cleanDraft(input.draft);
   if (!draft.title) {
@@ -56,15 +60,10 @@ export async function saveRecipe(input: SaveRecipeInput): Promise<SaveRecipeResu
   if (isNew) {
     const { error } = await supabase
       .from("recipes")
-      .insert({ id, cookbook_id: cookbookId, created_by: user.id, ...draft });
+      .insert({ id, owner_id: user.id, family_id: familyId, created_by: user.id, ...draft });
     if (error) return { error: t.common.error };
   } else {
-    // RLS only lets owners update; moving is limited to own cookbooks of the same family.
-    const { data, error } = await supabase
-      .from("recipes")
-      .update({ ...draft, cookbook_id: cookbookId })
-      .eq("id", id)
-      .select("id");
+    const { data, error } = await supabase.from("recipes").update(draft).eq("id", id).select("id");
     if (error || !data.length) return { error: t.common.error };
   }
 
@@ -105,22 +104,93 @@ export async function saveRecipe(input: SaveRecipeInput): Promise<SaveRecipeResu
     if (error) return { error: t.form.uploadFailed };
   }
 
+  await syncCollections(id, familyId, input.collectionIds);
+
   revalidatePath("/", "layout");
   redirect(`/recipes/${id}`);
 }
 
-/** Copies a recipe (including its images) into one of the user's own cookbooks. */
-export async function copyRecipe(sourceId: string, targetCookbookId: string): Promise<{ error: string } | undefined> {
+/** Puts a recipe into exactly the given collections of the current user. */
+export async function setRecipeCollections(recipeId: string, collectionIds: string[]): Promise<ActionResult> {
+  const recipe = await getRecipe(recipeId);
+  if (!recipe) return { error: t.common.error };
+  const result = await syncCollections(recipe.id, recipe.family_id, collectionIds);
+  revalidatePath("/", "layout");
+  return result;
+}
+
+async function syncCollections(recipeId: string, familyId: string, wanted: string[]): Promise<ActionResult> {
+  const user = await getCurrentUser();
+  const collections = (await getMyCookbooks()).filter((b) => !b.is_default && b.family_id === familyId);
+  const allowed = new Set(collections.map((b) => b.id));
+  const target = new Set(wanted.filter((id) => allowed.has(id)));
+
+  const supabase = await createClient();
+  const { data: current, error } = await supabase
+    .from("cookbook_recipes")
+    .select("cookbook_id")
+    .eq("recipe_id", recipeId)
+    .in("cookbook_id", [...allowed]);
+  if (error) return { error: t.common.error };
+
+  const have = new Set(current.map((l) => l.cookbook_id));
+  const toAdd = [...target].filter((id) => !have.has(id));
+  const toRemove = [...have].filter((id) => !target.has(id));
+  if (toAdd.length) {
+    const { error: addError } = await supabase
+      .from("cookbook_recipes")
+      .insert(toAdd.map((cookbook_id) => ({ cookbook_id, recipe_id: recipeId, added_by: user.id })));
+    if (addError) return { error: t.common.error };
+  }
+  if (toRemove.length) {
+    await supabase.from("cookbook_recipes").delete().eq("recipe_id", recipeId).in("cookbook_id", toRemove);
+  }
+  return undefined;
+}
+
+/** Adds existing recipes of the family to one of the user's collections. */
+export async function addRecipesToCookbook(cookbookId: string, recipeIds: string[]): Promise<ActionResult> {
+  const user = await getCurrentUser();
+  const cookbook = (await getMyCookbooks()).find((b) => b.id === cookbookId && !b.is_default);
+  const ids = recipeIds.filter(isUuid);
+  if (!cookbook || ids.length === 0) return { error: t.common.error };
+
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("cookbook_recipes")
+    .upsert(ids.map((recipe_id) => ({ cookbook_id: cookbook.id, recipe_id, added_by: user.id })), {
+      onConflict: "cookbook_id,recipe_id",
+      ignoreDuplicates: true,
+    });
+  if (error) return { error: t.common.error };
+
+  revalidatePath("/", "layout");
+  return undefined;
+}
+
+/** Removes a recipe from a collection. The recipe itself is not deleted. */
+export async function removeFromCookbook(cookbookId: string, recipeId: string): Promise<ActionResult> {
+  const cookbook = (await getMyCookbooks()).find((b) => b.id === cookbookId && !b.is_default);
+  if (!cookbook || !isUuid(recipeId)) return { error: t.common.error };
+  const supabase = await createClient();
+  const { error } = await supabase.from("cookbook_recipes").delete().eq("cookbook_id", cookbook.id).eq("recipe_id", recipeId);
+  if (error) return { error: t.common.error };
+  revalidatePath("/", "layout");
+  return undefined;
+}
+
+/** Copies a recipe (including its images) as the user's own recipe and opens it for editing. */
+export async function copyRecipe(sourceId: string): Promise<ActionResult> {
   const user = await getCurrentUser();
   const source = await getRecipe(sourceId);
-  const target = (await getMyCookbooks()).find((b) => b.id === targetCookbookId);
-  if (!source || !target) return { error: t.common.error };
+  if (!source) return { error: t.common.error };
 
   const supabase = await createClient();
   const newId = crypto.randomUUID();
   const { error } = await supabase.from("recipes").insert({
     id: newId,
-    cookbook_id: target.id,
+    owner_id: user.id,
+    family_id: source.family_id,
     created_by: user.id,
     title: source.title,
     servings: source.servings,
@@ -137,12 +207,12 @@ export async function copyRecipe(sourceId: string, targetCookbookId: string): Pr
   const copies = [];
   for (const img of source.images) {
     const fileName = img.storage_path.split("/").pop();
-    const path = `${target.family_id}/${newId}/${fileName}`;
+    const path = `${source.family_id}/${newId}/${fileName}`;
     const { error: copyError } = await supabase.storage.from(IMAGE_BUCKET).copy(img.storage_path, path);
     if (!copyError) {
       copies.push({
         recipe_id: newId,
-        family_id: target.family_id,
+        family_id: source.family_id,
         storage_path: path,
         role: img.role,
         sort_order: img.sort_order,
@@ -153,11 +223,10 @@ export async function copyRecipe(sourceId: string, targetCookbookId: string): Pr
   if (copies.length) await supabase.from("recipe_images").insert(copies);
 
   revalidatePath("/", "layout");
-  redirect(`/recipes/${newId}`);
+  redirect(`/recipes/${newId}/edit`);
 }
 
 export async function deleteRecipe(id: string) {
-  await getCurrentUser();
   const recipe = await getRecipe(id);
   if (!recipe?.canEdit) return;
   const supabase = await createClient();
@@ -169,7 +238,7 @@ export async function deleteRecipe(id: string) {
   }
 
   revalidatePath("/", "layout");
-  redirect(`/cookbooks/${recipe.cookbook_id}`);
+  redirect("/");
 }
 
 function cleanDraft(draft: RecipeDraft): RecipeDraft {
