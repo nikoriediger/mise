@@ -7,27 +7,27 @@
 
 /* Soft-green palette (Tailwind v4 defines the theme here instead of tailwind.config.ts) */
 @theme {
-  --color-sage-50: #f4f7f1;
-  --color-sage-100: #e8efe3;
-  --color-sage-200: #d4e1cb;
-  --color-sage-300: #b9cdab;
-  --color-sage-400: #9bb68a;
-  --color-matcha-300: #c5d9a4;
-  --color-matcha-400: #a9c47f;
-  --color-matcha-500: #8aab5c;
-  --color-mint-100: #e4f3ea;
-  --color-mint-200: #c9e7d5;
-  --color-moss-500: #5e7a4a;
-  --color-moss-600: #4b6539;
-  --color-forest-700: #2f5236;
-  --color-forest-800: #243f2a;
-  --color-forest-900: #1a2e1f;
+  --color-sage-50: #eef6ea;
+  --color-sage-100: #e2efdc;
+  --color-sage-200: #cfe5c6;
+  --color-sage-300: #b4d4a8;
+  --color-sage-400: #94c086;
+  --color-matcha-300: #c8e0a6;
+  --color-matcha-400: #a9cd7f;
+  --color-matcha-500: #86b35a;
+  --color-mint-100: #e1f3e7;
+  --color-mint-200: #c4e8d0;
+  --color-moss-500: #5f9157;
+  --color-moss-600: #4f8048;
+  --color-forest-700: #4a7c4e;
+  --color-forest-800: #3b6640;
+  --color-forest-900: #1f3524;
 
   /* Semantic tokens used throughout the app */
-  --color-cream: #fbfaf4;
+  --color-cream: #fbfdf8;
   --color-ink: var(--color-forest-900);
-  --color-muted: #5d6f5c;
-  --color-line: #dce6d4;
+  --color-muted: #5b7158;
+  --color-line: #d4e6cc;
   --color-accent: var(--color-forest-700);
   --color-accent-dark: var(--color-forest-800);
 
@@ -42,9 +42,28 @@ body {
   color: var(--color-ink);
   background-color: var(--color-sage-50);
   background-image:
-    radial-gradient(60rem 40rem at 10% -10%, rgb(201 231 213 / 0.55), transparent 60%),
-    radial-gradient(50rem 35rem at 110% 10%, rgb(197 217 164 / 0.35), transparent 60%);
+    radial-gradient(60rem 40rem at 0% 0%, rgb(196 232 208 / 0.9), transparent 60%),
+    radial-gradient(55rem 40rem at 100% 15%, rgb(200 224 166 / 0.7), transparent 60%),
+    radial-gradient(60rem 45rem at 50% 110%, rgb(207 229 198 / 0.8), transparent 65%);
   background-attachment: fixed;
+}
+
+/* Page transition: plain CSS so content is visible even before JavaScript loads */
+@keyframes page-in {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+}
+
+@utility page-in {
+  animation: page-in 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page-in {
+    animation: none;
+  }
 }
 
 ::selection {

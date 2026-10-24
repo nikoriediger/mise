@@ -1,5 +1,3 @@
-import { PageTransition } from "@/components/motion";
-
 export default function AppTemplate({ children }: { children: React.ReactNode }) {
-  return <PageTransition>{children}</PageTransition>;
+  return <div className="page-in">{children}</div>;
 }
