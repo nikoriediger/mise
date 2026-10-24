@@ -11,7 +11,8 @@ import { recipeFormTools } from "@/features/registry";
 import { compressImage, extensionFor } from "@/lib/image-compress";
 import { createClient } from "@/lib/supabase/client";
 import { IMAGE_BUCKET, type Cookbook, type ImageRole, type RecipeDraft, type RecipeWithImages } from "@/lib/types";
-import { t } from "@/i18n";
+import { useI18n } from "@/i18n/client";
+import { localeFlags, locales, type Locale } from "@/i18n/config";
 
 type FormImage = {
   key: string;
@@ -24,6 +25,7 @@ type FormImage = {
 };
 
 type Fields = {
+  language: Locale | null;
   title: string;
   servings: string;
   prep_minutes: string;
@@ -53,13 +55,15 @@ type Props = {
 };
 
 export function RecipeForm({ familyId, cookbooks, initialCollectionIds, recipe, draftId, existing = [] }: Props) {
+  const { t } = useI18n();
   const recipeId = recipe?.id ?? draftId!;
   const [collectionIds, setCollectionIds] = useState<string[]>(initialCollectionIds);
   const mainCookbook = cookbooks.find((b) => b.is_default);
   const collections = cookbooks.filter((b) => !b.is_default);
   const toggleCollection = (id: string) =>
     setCollectionIds((ids) => (ids.includes(id) ? ids.filter((x) => x !== id) : [...ids, id]));
-  const [fields, setFields] = useState<Fields>(() => toFields(recipe));
+  const { locale } = useI18n();
+  const [fields, setFields] = useState<Fields>(() => ({ ...toFields(recipe), language: recipe ? recipe.language : locale }));
   const [steps, setSteps] = useState<Step[]>(() => toSteps(recipe?.steps));
   const [images, setImages] = useState<FormImage[]>(() =>
     (recipe?.images ?? []).map((img) => ({
@@ -108,7 +112,7 @@ export function RecipeForm({ familyId, cookbooks, initialCollectionIds, recipe, 
   }
 
   function prefill(draft: Partial<RecipeDraft>, sourceFiles: File[]) {
-    setFields((f) => ({ ...f, ...toFields(draft) }));
+    setFields((f) => ({ ...f, ...toFields(draft), language: draft.language ?? f.language }));
     if (draft.steps) setSteps(toSteps(draft.steps));
     if (sourceFiles.length) addFiles(sourceFiles, "source");
   }
@@ -222,6 +226,29 @@ export function RecipeForm({ familyId, cookbooks, initialCollectionIds, recipe, 
             </div>
           </div>
         )}
+        <div>
+          <span className="label">{t.form.language}</span>
+          <div className="flex flex-wrap gap-2">
+            {locales.map((l) => {
+              const on = fields.language === l;
+              return (
+                <motion.button
+                  key={l}
+                  type="button"
+                  onClick={() => setFields((f) => ({ ...f, language: l }))}
+                  whileTap={{ scale: 0.95 }}
+                  transition={spring}
+                  aria-pressed={on}
+                  className={`min-h-10 rounded-full px-4 text-sm transition-colors ${
+                    on ? "bg-forest-700 text-cream shadow-soft" : "bg-sage-50 text-forest-800 ring-1 ring-line hover:bg-sage-100"
+                  }`}
+                >
+                  {localeFlags[l]} {t.lang[l]}
+                </motion.button>
+              );
+            })}
+          </div>
+        </div>
         <div className="grid grid-cols-3 gap-3">
           <NumberField id="servings" label={t.form.servings} value={fields.servings} onChange={set("servings")} />
           <NumberField id="prep_minutes" label={t.form.prepMinutes} value={fields.prep_minutes} onChange={set("prep_minutes")} />
@@ -274,7 +301,7 @@ export function RecipeForm({ familyId, cookbooks, initialCollectionIds, recipe, 
 
       {error && <p className="text-sm text-red-700">{error}</p>}
 
-      <div className="glass sticky bottom-3 z-20 flex gap-3 rounded-2xl px-4 py-3 shadow-lifted">
+      <div className="glass sticky bottom-[calc(5.75rem+env(safe-area-inset-bottom))] z-20 flex gap-3 rounded-2xl px-4 py-3 shadow-lifted md:bottom-3 [&>*]:min-h-11 [&>*]:flex-1 sm:[&>*]:flex-none">
         <button className="btn-primary" disabled={pending}>{pending ? t.common.saving : t.common.save}</button>
         <Link href={recipe ? `/recipes/${recipe.id}` : "/"} className="btn-secondary">{t.common.cancel}</Link>
       </div>
@@ -283,6 +310,7 @@ export function RecipeForm({ familyId, cookbooks, initialCollectionIds, recipe, 
 }
 
 function DuplicateHint({ title, existing }: { title: string; existing: ExistingRecipe[] }) {
+  const { t } = useI18n();
   const q = normalize(title);
   const matches = q.length < 3 ? [] : existing.filter((r) => {
     const other = normalize(r.title);
@@ -322,6 +350,7 @@ function normalize(s: string) {
 }
 
 function StepsEditor({ steps, onChange }: { steps: Step[]; onChange: (steps: Step[]) => void }) {
+  const { t, f } = useI18n();
   const update = (key: string, text: string) => onChange(steps.map((s) => (s.key === key ? { ...s, text } : s)));
   const remove = (key: string) => onChange(steps.filter((s) => s.key !== key));
   const move = (from: number, to: number) => {
@@ -349,12 +378,12 @@ function StepsEditor({ steps, onChange }: { steps: Step[]; onChange: (steps: Ste
                 {i + 1}
               </span>
               <div className="min-w-0 flex-1">
-                <p className="mb-1 text-xs font-semibold uppercase tracking-[0.14em] text-moss-600">{t.recipes.step(i + 1)}</p>
+                <p className="mb-1 text-xs font-semibold uppercase tracking-[0.14em] text-moss-600">{f(t.recipes.step, { n: i + 1 })}</p>
                 <textarea
                   className="input min-h-20 [field-sizing:content]"
                   value={step.text}
                   placeholder={t.form.stepPlaceholder}
-                  aria-label={t.recipes.step(i + 1)}
+                  aria-label={f(t.recipes.step, { n: i + 1 })}
                   onChange={(e) => update(step.key, e.target.value)}
                 />
               </div>
@@ -382,7 +411,7 @@ function IconButton(props: { label: string; onClick: () => void; disabled?: bool
       aria-label={props.label}
       disabled={props.disabled}
       onClick={props.onClick}
-      className={`flex size-8 items-center justify-center rounded-lg text-sm transition-colors disabled:opacity-30 ${
+      className={`flex size-10 items-center justify-center rounded-lg text-sm transition-colors disabled:opacity-30 sm:size-8 ${
         props.danger ? "text-red-700 hover:bg-red-50" : "text-forest-800 hover:bg-sage-100"
       }`}
     >
@@ -409,6 +438,7 @@ function ImageSection(props: {
   onUpdate: (key: string, change: Partial<FormImage>) => void;
   onRemove: (key: string) => void;
 }) {
+  const { t } = useI18n();
   const inputRef = useRef<HTMLInputElement>(null);
   const otherRole: ImageRole = props.role === "gallery" ? "source" : "gallery";
 
@@ -435,14 +465,14 @@ function ImageSection(props: {
             </div>
             <div className="flex flex-col p-1 text-xs">
               {props.role === "gallery" && !img.is_cover && (
-                <button type="button" className="rounded-lg px-2 py-1 text-left hover:bg-sage-100" onClick={() => props.onUpdate(img.key, { is_cover: true })}>
+                <button type="button" className="rounded-lg px-2 py-2 text-left hover:bg-sage-100 sm:py-1" onClick={() => props.onUpdate(img.key, { is_cover: true })}>
                   {t.form.setCover}
                 </button>
               )}
-              <button type="button" className="rounded-lg px-2 py-1 text-left hover:bg-sage-100" onClick={() => props.onUpdate(img.key, { role: otherRole, is_cover: false })}>
+              <button type="button" className="rounded-lg px-2 py-2 text-left hover:bg-sage-100 sm:py-1" onClick={() => props.onUpdate(img.key, { role: otherRole, is_cover: false })}>
                 {otherRole === "gallery" ? t.form.moveToGallery : t.form.moveToSources}
               </button>
-              <button type="button" className="rounded-lg px-2 py-1 text-left text-red-700 hover:bg-red-50" onClick={() => props.onRemove(img.key)}>
+              <button type="button" className="rounded-lg px-2 py-2 text-left text-red-700 hover:bg-red-50 sm:py-1" onClick={() => props.onRemove(img.key)}>
                 {t.form.remove}
               </button>
             </div>
@@ -483,6 +513,7 @@ function toFields(r?: Partial<Omit<RecipeDraft, "notes" | "category"> & { notes:
     notes: r?.notes ?? "",
     category: r?.category ?? "",
     tags: (r?.tags ?? []).join(", "),
+    language: r?.language ?? null,
   };
 }
 
@@ -506,6 +537,7 @@ function toDraft(f: Fields, steps: Step[]): RecipeDraft {
     notes: f.notes,
     category: f.category,
     tags: f.tags.split(","),
+    language: f.language,
   };
 }
 

@@ -5,7 +5,7 @@ import { createContext, use, useMemo, useState } from "react";
 import { spring } from "@/components/motion";
 import { ingredientActions } from "@/features/registry";
 import { scaleIngredient } from "@/lib/scale-ingredients";
-import { locale, t } from "@/i18n";
+import { useI18n } from "@/i18n/client";
 
 type RecipeBasics = { title: string; ingredients: string[]; steps: string[]; servings: number | null };
 
@@ -22,9 +22,10 @@ const ScaleContext = createContext<ScaleState | null>(null);
 
 /** Holds the selected number of servings for everything on the recipe page. */
 export function ScaleProvider({ recipe, children }: { recipe: RecipeBasics; children: React.ReactNode }) {
+  const { locale } = useI18n();
   const [amount, setAmount] = useState(recipe.servings ?? 1);
   const factor = recipe.servings ? amount / recipe.servings : amount;
-  const scaled = useMemo(() => recipe.ingredients.map((i) => scaleIngredient(i, factor, locale)), [recipe.ingredients, factor]);
+  const scaled = useMemo(() => recipe.ingredients.map((i) => scaleIngredient(i, factor, locale)), [recipe.ingredients, factor, locale]);
   return <ScaleContext value={{ recipe, amount, setAmount, factor, scaled }}>{children}</ScaleContext>;
 }
 
@@ -38,6 +39,7 @@ const MULTIPLIERS = [0.5, 1, 1.5, 2, 3, 4];
 
 /** − n + counter for servings (or ×½ … ×4 if the recipe has no servings). */
 export function ServingsStepper({ large }: { large?: boolean }) {
+  const { t, locale } = useI18n();
   const { recipe, amount, setAmount } = useScale();
   const byServings = recipe.servings !== null;
 
@@ -49,7 +51,7 @@ export function ServingsStepper({ large }: { large?: boolean }) {
     }
   };
   const label = byServings ? String(amount) : `×${String(amount).replace(".", locale === "de" ? "," : ".")}`;
-  const size = large ? "size-12 text-2xl" : "size-9 text-lg";
+  const size = large ? "size-12 text-2xl" : "size-11 text-lg sm:size-9";
 
   return (
     <div className="flex items-center gap-2 print:hidden">
@@ -96,13 +98,14 @@ export function ServingsStepper({ large }: { large?: boolean }) {
 
 /** The ingredients card on the recipe page, scaled to the selected servings. */
 export function IngredientsCard() {
+  const { t, p } = useI18n();
   const { recipe, scaled, factor, amount } = useScale();
   return (
     <section className="card h-fit p-5 sm:p-6 lg:sticky lg:top-24 print:static print:border-0 print:p-0 print:shadow-none">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <h2 className="font-serif text-2xl font-semibold text-forest-900">{t.recipes.ingredients}</h2>
         <ServingsStepper />
-        {recipe.servings && <span className="hidden text-sm print:inline">{t.recipes.servingsCount(amount)}</span>}
+        {recipe.servings && <span className="hidden text-sm print:inline">{p(t.recipes.servingsCount, amount)}</span>}
       </div>
       <AnimatePresence>
         {factor !== 1 && (

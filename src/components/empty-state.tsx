@@ -1,7 +1,8 @@
 import Link from "next/link";
-import { t } from "@/i18n";
+import { getI18n } from "@/i18n/server";
 
-export function EmptyState({ text, href, cta }: { text: string; href?: string; cta?: string }) {
+export async function EmptyState({ text, href, cta }: { text: string; href?: string; cta?: string }) {
+  const { t } = await getI18n();
   return (
     <div className="card mx-auto flex max-w-md flex-col items-center gap-4 px-6 py-14 text-center">
       <span className="flex size-16 items-center justify-center rounded-2xl bg-gradient-to-br from-sage-100 to-mint-200 text-3xl shadow-soft">🥣</span>

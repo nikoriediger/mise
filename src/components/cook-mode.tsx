@@ -5,7 +5,7 @@ import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
 import { spring } from "@/components/motion";
 import { ServingsStepper, useScale } from "@/components/recipe-scale";
-import { t } from "@/i18n";
+import { useI18n } from "@/i18n/client";
 
 type Progress = { ingredients: number[]; steps: number[] };
 const empty: Progress = { ingredients: [], steps: [] };
@@ -48,13 +48,14 @@ function useWakeLock(active: boolean) {
 }
 
 export function CookModeButton({ recipeId }: { recipeId: string }) {
+  const { t } = useI18n();
   const [open, setOpen] = useState(false);
   const mounted = useSyncExternalStore(noopSubscribe, () => true, () => false);
 
   return (
     <>
       <motion.button
-        className="btn-primary print:hidden"
+        className="btn-primary min-h-12 flex-1 sm:flex-none print:hidden"
         onClick={() => setOpen(true)}
         whileHover={{ scale: 1.04 }}
         whileTap={{ scale: 0.97 }}
@@ -68,6 +69,7 @@ export function CookModeButton({ recipeId }: { recipeId: string }) {
 }
 
 function CookMode({ recipeId, onClose }: { recipeId: string; onClose: () => void }) {
+  const { t, f } = useI18n();
   const { recipe, scaled } = useScale();
   const storageKey = `cook-progress:${recipeId}`;
   const [progress, setProgress] = useState<Progress>(() => {
@@ -115,7 +117,7 @@ function CookMode({ recipeId, onClose }: { recipeId: string; onClose: () => void
             <h2 className="truncate font-serif text-xl font-semibold text-forest-900 sm:text-2xl">{recipe.title}</h2>
             <p className="text-xs text-muted">
               {wakeLock === "on" ? `🔆 ${t.view.screenOn}` : wakeLock === "unsupported" ? t.view.screenOnUnsupported : ""}
-              {recipe.steps.length > 0 && ` · ${t.view.progress(progress.steps.length, recipe.steps.length)}`}
+              {recipe.steps.length > 0 && ` · ${f(t.view.progress, { done: progress.steps.length, total: recipe.steps.length })}`}
             </p>
           </div>
           <button className="btn-secondary" onClick={() => setProgress(empty)}>↺ {t.view.reset}</button>

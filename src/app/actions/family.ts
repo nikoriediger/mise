@@ -17,7 +17,7 @@ export async function createInvite(): Promise<{ token: string } | { error: true 
     .single();
   if (error) return { error: true };
 
-  revalidatePath("/family");
+  revalidatePath("/", "layout");
   return { token: data.token };
 }
 
@@ -26,7 +26,7 @@ export async function revokeInvite(token: string) {
   if (!isUuid(token)) return;
   const supabase = await createClient();
   await supabase.from("invites").delete().eq("token", token);
-  revalidatePath("/family");
+  revalidatePath("/", "layout");
 }
 
 export async function removeMember(userId: string) {
@@ -39,5 +39,5 @@ export async function removeMember(userId: string) {
     .delete()
     .eq("family_id", family.family_id)
     .eq("user_id", userId);
-  revalidatePath("/family");
+  revalidatePath("/", "layout");
 }

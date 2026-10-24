@@ -8,7 +8,7 @@ import { createCookbook, deleteCookbook, updateCookbook, type CookbookFormState 
 import { ConfirmDialog, Dialog } from "@/components/dialog";
 import { spring } from "@/components/motion";
 import { COOKBOOK_EMOJIS, type Cookbook, type CookbookWithCover } from "@/lib/types";
-import { t } from "@/i18n";
+import { useI18n } from "@/i18n/client";
 
 const grid: Variants = { hidden: {}, show: { transition: { staggerChildren: 0.07 } } };
 const item: Variants = {
@@ -17,6 +17,7 @@ const item: Variants = {
 };
 
 export function CookbookGrid({ cookbooks, showOwner }: { cookbooks: CookbookWithCover[]; showOwner?: boolean }) {
+  const { t, p, f } = useI18n();
   return (
     <motion.ul variants={grid} initial="hidden" animate="show" className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
       {cookbooks.map((b) => (
@@ -44,7 +45,7 @@ export function CookbookGrid({ cookbooks, showOwner }: { cookbooks: CookbookWith
               <span className="min-w-0 pt-2">
                 <span className="block truncate font-serif text-lg font-semibold text-forest-900">{b.name}</span>
                 <span className="block text-sm text-muted">
-                  {[showOwner && b.owner_name && t.recipes.byOwner(b.owner_name), t.recipes.count(b.recipe_count)].filter(Boolean).join(" · ")}
+                  {[showOwner && b.owner_name && f(t.recipes.byOwner, { name: b.owner_name }), p(t.recipes.count, b.recipe_count)].filter(Boolean).join(" · ")}
                 </span>
               </span>
               </span>
@@ -57,6 +58,7 @@ export function CookbookGrid({ cookbooks, showOwner }: { cookbooks: CookbookWith
 }
 
 function CookbookFields({ cookbook, state, pending }: { cookbook?: Cookbook; state: CookbookFormState; pending: boolean }) {
+  const { t } = useI18n();
   const [emoji, setEmoji] = useState(cookbook?.emoji ?? COOKBOOK_EMOJIS[0]);
   return (
     <div className="space-y-4">
@@ -93,6 +95,7 @@ function CookbookFields({ cookbook, state, pending }: { cookbook?: Cookbook; sta
 }
 
 export function CreateCookbookButton() {
+  const { t } = useI18n();
   const [open, setOpen] = useState(false);
   const [state, action, pending] = useActionState(createCookbook, undefined);
   return (
@@ -109,6 +112,7 @@ export function CreateCookbookButton() {
 }
 
 export function EditCookbookButton({ cookbook }: { cookbook: Cookbook }) {
+  const { t } = useI18n();
   const [open, setOpen] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [deleteError, setDeleteError] = useState("");

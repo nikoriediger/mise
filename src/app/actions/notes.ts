@@ -3,11 +3,12 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser, getRecipe, isUuid } from "@/lib/data";
-import { t } from "@/i18n";
+import type { Messages } from "@/i18n/format";
+import { getActionI18n } from "@/i18n/server";
 
 export type NoteResult = { error: string } | undefined;
 
-function clean(body: string): string | NoteResult {
+function clean(body: string, t: Messages): string | NoteResult {
   const text = body.trim();
   if (!text) return { error: t.common.error };
   if (text.length > 2000) return { error: t.notes.tooLong };
@@ -15,35 +16,38 @@ function clean(body: string): string | NoteResult {
 }
 
 export async function addNote(recipeId: string, body: string): Promise<NoteResult> {
+  const { t } = await getActionI18n();
   const user = await getCurrentUser();
   const recipe = await getRecipe(recipeId);
-  const text = clean(body);
+  const text = clean(body, t);
   if (!recipe) return { error: t.common.error };
   if (typeof text !== "string") return text;
 
   const supabase = await createClient();
   const { error } = await supabase.from("recipe_notes").insert({ recipe_id: recipe.id, author_id: user.id, body: text });
   if (error) return { error: t.common.error };
-  revalidatePath(`/recipes/${recipe.id}`);
+  revalidatePath("/", "layout");
 }
 
-export async function updateNote(noteId: string, recipeId: string, body: string): Promise<NoteResult> {
+export async function updateNote(noteId: string, body: string): Promise<NoteResult> {
+  const { t } = await getActionI18n();
   await getCurrentUser();
-  const text = clean(body);
+  const text = clean(body, t);
   if (!isUuid(noteId)) return { error: t.common.error };
   if (typeof text !== "string") return text;
 
   const supabase = await createClient();
   const { data, error } = await supabase.from("recipe_notes").update({ body: text }).eq("id", noteId).select("id");
   if (error || !data.length) return { error: t.common.error };
-  revalidatePath(`/recipes/${recipeId}`);
+  revalidatePath("/", "layout");
 }
 
-export async function deleteNote(noteId: string, recipeId: string): Promise<NoteResult> {
+export async function deleteNote(noteId: string): Promise<NoteResult> {
+  const { t } = await getActionI18n();
   await getCurrentUser();
   if (!isUuid(noteId)) return { error: t.common.error };
   const supabase = await createClient();
   const { data, error } = await supabase.from("recipe_notes").delete().eq("id", noteId).select("id");
   if (error || !data.length) return { error: t.common.error };
-  revalidatePath(`/recipes/${recipeId}`);
+  revalidatePath("/", "layout");
 }

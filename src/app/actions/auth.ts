@@ -2,11 +2,13 @@
 
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { t } from "@/i18n";
+import { cookbookDefaultName } from "@/i18n/format";
+import { getActionI18n } from "@/i18n/server";
 
 export type AuthState = { error?: string; message?: string } | undefined;
 
 export async function signIn(_prev: AuthState, formData: FormData): Promise<AuthState> {
+  const { t } = await getActionI18n();
   const email = String(formData.get("email") ?? "").trim();
   const password = String(formData.get("password") ?? "");
 
@@ -19,6 +21,7 @@ export async function signIn(_prev: AuthState, formData: FormData): Promise<Auth
 }
 
 export async function signUp(_prev: AuthState, formData: FormData): Promise<AuthState> {
+  const { t } = await getActionI18n();
   const email = String(formData.get("email") ?? "").trim();
   const password = String(formData.get("password") ?? "");
   const displayName = String(formData.get("display_name") ?? "").trim();
@@ -47,7 +50,7 @@ export async function signUp(_prev: AuthState, formData: FormData): Promise<Auth
       data: {
         display_name: displayName,
         family_name: familyName || t.auth.familyNameDefault,
-        cookbook_name: t.cookbooks.defaultName(displayName),
+        cookbook_name: cookbookDefaultName(t, displayName),
         invite_token: inviteToken || undefined,
       },
     },

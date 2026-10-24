@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser, getMyCookbooks, getPrimaryFamily, isUuid } from "@/lib/data";
 import { COOKBOOK_EMOJIS } from "@/lib/types";
-import { t } from "@/i18n";
+import { getActionI18n } from "@/i18n/server";
 
 export type CookbookFormState = { error?: string } | undefined;
 
@@ -17,6 +17,7 @@ function readForm(formData: FormData) {
 
 /** Creates a new collection. */
 export async function createCookbook(_prev: CookbookFormState, formData: FormData): Promise<CookbookFormState> {
+  const { t } = await getActionI18n();
   const user = await getCurrentUser();
   const family = await getPrimaryFamily();
   const { name, emoji } = readForm(formData);
@@ -35,6 +36,7 @@ export async function createCookbook(_prev: CookbookFormState, formData: FormDat
 }
 
 export async function updateCookbook(_prev: CookbookFormState, formData: FormData): Promise<CookbookFormState> {
+  const { t } = await getActionI18n();
   await getCurrentUser();
   const id = String(formData.get("id") ?? "");
   const { name, emoji } = readForm(formData);
@@ -51,6 +53,7 @@ export async function updateCookbook(_prev: CookbookFormState, formData: FormDat
 
 /** Deletes an own collection. Its recipes stay; the main cookbook can't be deleted. */
 export async function deleteCookbook(id: string): Promise<{ error: string } | undefined> {
+  const { t } = await getActionI18n();
   const cookbook = (await getMyCookbooks()).find((b) => b.id === id);
   if (!cookbook) return { error: t.common.error };
   if (cookbook.is_default) return { error: t.cookbooks.cannotDeleteMain };

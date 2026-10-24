@@ -5,11 +5,12 @@ import Image from "next/image";
 import { useCallback, useEffect, useState } from "react";
 import { Dialog } from "@/components/dialog";
 import { spring } from "@/components/motion";
-import { t } from "@/i18n";
+import { useI18n } from "@/i18n/client";
 
 type GalleryImage = { id: string; url: string };
 
 export function ImageGallery({ images, variant = "photos" }: { images: GalleryImage[]; variant?: "photos" | "scans" }) {
+  const { t } = useI18n();
   const [index, setIndex] = useState<number | null>(null);
   const close = useCallback(() => setIndex(null), []);
   const step = useCallback(

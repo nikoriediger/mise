@@ -6,9 +6,10 @@ import { addNote, deleteNote, updateNote } from "@/app/actions/notes";
 import { ConfirmDialog } from "@/components/dialog";
 import { spring } from "@/components/motion";
 import type { RecipeNote } from "@/lib/data";
-import { formatDate, t } from "@/i18n";
+import { useI18n } from "@/i18n/client";
 
 export function FamilyNotes({ recipeId, notes }: { recipeId: string; notes: RecipeNote[] }) {
+  const { t } = useI18n();
   const [draft, setDraft] = useState("");
   const [error, setError] = useState("");
   const [pending, startTransition] = useTransition();
@@ -31,7 +32,7 @@ export function FamilyNotes({ recipeId, notes }: { recipeId: string; notes: Reci
               exit={{ opacity: 0, x: -20 }}
               transition={spring}
             >
-              <NoteCard note={note} recipeId={recipeId} />
+              <NoteCard note={note} />
             </motion.li>
           ))}
         </AnimatePresence>
@@ -71,7 +72,8 @@ export function FamilyNotes({ recipeId, notes }: { recipeId: string; notes: Reci
   );
 }
 
-function NoteCard({ note, recipeId }: { note: RecipeNote; recipeId: string }) {
+function NoteCard({ note }: { note: RecipeNote }) {
+  const { t, date } = useI18n();
   const [editing, setEditing] = useState(false);
   const [text, setText] = useState(note.body);
   const [confirm, setConfirm] = useState(false);
@@ -85,17 +87,17 @@ function NoteCard({ note, recipeId }: { note: RecipeNote; recipeId: string }) {
         </span>
         <span className="font-medium text-forest-900">{note.author_name || "…"}</span>
         <span className="text-muted">
-          · {formatDate(note.created_at)}
+          · {date(note.created_at)}
           {note.edited && ` · ${t.notes.edited}`}
         </span>
         <span className="ml-auto flex gap-1 print:hidden">
           {note.canEdit && !editing && (
-            <button className="rounded-lg px-2 py-0.5 text-xs text-forest-800 hover:bg-sage-100" onClick={() => setEditing(true)}>
+            <button className="rounded-lg px-3 py-2 text-xs text-forest-800 hover:bg-sage-100 sm:px-2 sm:py-0.5" onClick={() => setEditing(true)}>
               {t.common.edit}
             </button>
           )}
           {note.canDelete && (
-            <button className="rounded-lg px-2 py-0.5 text-xs text-red-700 hover:bg-red-50" onClick={() => setConfirm(true)}>
+            <button className="rounded-lg px-3 py-2 text-xs text-red-700 hover:bg-red-50 sm:px-2 sm:py-0.5" onClick={() => setConfirm(true)}>
               {t.common.delete}
             </button>
           )}
@@ -111,7 +113,7 @@ function NoteCard({ note, recipeId }: { note: RecipeNote; recipeId: string }) {
               disabled={pending || !text.trim()}
               onClick={() =>
                 startTransition(async () => {
-                  const result = await updateNote(note.id, recipeId, text);
+                  const result = await updateNote(note.id, text);
                   if (!result?.error) setEditing(false);
                 })
               }
@@ -131,7 +133,7 @@ function NoteCard({ note, recipeId }: { note: RecipeNote; recipeId: string }) {
         onCancel={() => setConfirm(false)}
         onConfirm={() =>
           startTransition(async () => {
-            await deleteNote(note.id, recipeId);
+            await deleteNote(note.id);
             setConfirm(false);
           })
         }

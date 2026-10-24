@@ -40,6 +40,7 @@
 
 body {
   color: var(--color-ink);
+  -webkit-tap-highlight-color: transparent;
   background-color: var(--color-sage-50);
   background-image:
     radial-gradient(60rem 40rem at 0% 0%, rgb(196 232 208 / 0.9), transparent 60%),
@@ -96,7 +97,15 @@ body {
   @apply rounded-2xl border border-white/70 bg-cream shadow-soft;
 }
 @utility glass {
-  @apply border border-white/60 bg-cream/60 backdrop-blur-xl backdrop-saturate-150;
+  @apply border border-white/60 bg-cream/70 backdrop-blur-md backdrop-saturate-150 sm:bg-cream/60 sm:backdrop-blur-xl;
+}
+
+/* Horizontally scrollable rows without a visible scrollbar */
+@utility no-scrollbar {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
 }
 
 /* Clean A4 print: no backgrounds, shadows, animations or app chrome */

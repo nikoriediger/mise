@@ -58,7 +58,7 @@ export function parseIngredient(line: string): ParsedIngredient | null {
   return { lead: match[1], min, max, unit, rest };
 }
 
-export function scaleIngredient(line: string, factor: number, locale: "de" | "en" = "de"): string {
+export function scaleIngredient(line: string, factor: number, locale: "de" | "en" | "it" = "de"): string {
   if (factor === 1) return line;
   const parsed = parseIngredient(line);
   if (!parsed) return line;
@@ -115,9 +115,9 @@ function roundTo(n: number, step: number) {
   return Math.max(step, Math.round(n / step) * step);
 }
 
-function formatDecimal(n: number, locale: "de" | "en") {
+function formatDecimal(n: number, locale: "de" | "en" | "it") {
   const text = String(Math.round(n * 100) / 100);
-  return locale === "de" ? text.replace(".", ",") : text;
+  return locale === "en" ? text : text.replace(".", ",");
 }
 
 const FRACTIONS: [number, string][] = [

@@ -7,12 +7,13 @@ import { addRecipesToCookbook } from "@/app/actions/recipes";
 import { Dialog } from "@/components/dialog";
 import { spring } from "@/components/motion";
 import type { RecipeListItem } from "@/lib/types";
-import { t } from "@/i18n";
+import { useI18n } from "@/i18n/client";
 
 type Candidate = Pick<RecipeListItem, "id" | "title" | "owner_name" | "is_mine" | "coverUrl">;
 
 /** Lets the owner of a collection add existing family recipes to it. */
 export function RecipePickerButton({ cookbookId, cookbookName, candidates }: { cookbookId: string; cookbookName: string; candidates: Candidate[] }) {
+  const { t, p, f } = useI18n();
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [selected, setSelected] = useState<string[]>([]);
@@ -37,7 +38,7 @@ export function RecipePickerButton({ cookbookId, cookbookName, candidates }: { c
         ＋ {t.cookbooks.addRecipes}
       </button>
       <Dialog open={open} onClose={() => setOpen(false)} className="flex max-h-[85vh] w-full max-w-2xl flex-col p-5 sm:p-6">
-        <h2 className="font-serif text-2xl font-semibold text-forest-900">{t.cookbooks.addRecipesTitle(cookbookName)}</h2>
+        <h2 className="font-serif text-2xl font-semibold text-forest-900">{f(t.cookbooks.addRecipesTitle, { name: cookbookName })}</h2>
         {candidates.length === 0 ? (
           <p className="mt-4 text-sm text-muted">{t.cookbooks.pickerEmpty}</p>
         ) : (
@@ -97,7 +98,7 @@ export function RecipePickerButton({ cookbookId, cookbookName, candidates }: { c
               })
             }
           >
-            {pending ? t.common.saving : t.cookbooks.addSelected(selected.length)}
+            {pending ? t.common.saving : (selected.length ? p(t.cookbooks.addSelected, selected.length) : t.cookbooks.add)}
           </button>
         </div>
       </Dialog>

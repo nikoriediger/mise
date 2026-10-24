@@ -98,6 +98,8 @@ await as(A, async () => {
   ok((await rows(`update public.recipes set title = 'Tiramisu Papa 2' where id = $1 returning id`, [rPapa])).length === 1, "Papa can edit his own recipe");
   ok(Boolean((await tryQ(`insert into public.recipes (owner_id, family_id, title) values ($1, $2, 'x')`, [B, fam])).error), "Papa cannot create a recipe owned by Niko");
   ok(!(await tryQ(`insert into public.recipes (owner_id, family_id, title) values ($1, $2, 'Neu')`, [A, fam])).error, "Papa can create his own recipe");
+  ok(!(await tryQ(`insert into public.recipes (owner_id, family_id, title, language) values ($1, $2, 'Tiramisù', 'it')`, [A, fam])).error, "recipes can have a content language");
+  ok(Boolean((await tryQ(`insert into public.recipes (owner_id, family_id, title, language) values ($1, $2, 'x', 'fr')`, [A, fam])).error), "unknown languages are rejected");
 
   papaCollection = (await one(`insert into public.cookbooks (family_id, owner_id, name) values ($1, $2, 'Weihnachten') returning id`, [fam, A])).id;
   ok(Boolean(papaCollection), "Papa can create a collection");

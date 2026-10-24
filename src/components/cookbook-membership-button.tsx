@@ -7,7 +7,7 @@ import { setRecipeCollections } from "@/app/actions/recipes";
 import { Dialog } from "@/components/dialog";
 import { spring } from "@/components/motion";
 import type { Cookbook } from "@/lib/types";
-import { t } from "@/i18n";
+import { useI18n } from "@/i18n/client";
 
 type Props = {
   recipeId: string;
@@ -21,6 +21,7 @@ type Props = {
 
 /** "Add to cookbook": choose which of your collections contain this recipe. */
 export function CookbookMembershipButton({ recipeId, isMine, cookbooks, selected }: Props) {
+  const { t } = useI18n();
   const [open, setOpen] = useState(false);
   const [checked, setChecked] = useState<string[]>(selected);
   const [error, setError] = useState("");

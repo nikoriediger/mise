@@ -147,7 +147,7 @@ export async function listRecipes(cookbookId?: string): Promise<RecipeListItem[]
   const supabase = await createClient();
   let query = supabase
     .from("recipes")
-    .select("id, title, category, tags, prep_minutes, cook_minutes, owner_id, family_id, ingredients, recipe_images(storage_path, role, is_cover, sort_order)")
+    .select("id, title, category, tags, prep_minutes, cook_minutes, owner_id, family_id, ingredients, language, recipe_images(storage_path, role, is_cover, sort_order)")
     .order("title");
 
   if (cookbookId) {
@@ -179,6 +179,7 @@ export async function listRecipes(cookbookId?: string): Promise<RecipeListItem[]
     owner_id: recipe.owner_id,
     family_id: recipe.family_id,
     ingredients: recipe.ingredients,
+    language: recipe.language,
     owner_name: ownerName(recipe.family_id, recipe.owner_id),
     is_mine: recipe.owner_id === user.id,
     cookbook_ids: membership.get(recipe.id) ?? [],

@@ -8,7 +8,8 @@ import { removeFromCookbook } from "@/app/actions/recipes";
 import { spring } from "@/components/motion";
 import { allowedMissing, matchIngredients } from "@/lib/ingredient-search";
 import type { Cookbook, RecipeListItem } from "@/lib/types";
-import { t } from "@/i18n";
+import { useI18n } from "@/i18n/client";
+import { localeFlags, type Locale } from "@/i18n/config";
 
 const gridVariants: Variants = {
   hidden: {},
@@ -32,9 +33,11 @@ type Props = {
 };
 
 export function RecipeList({ recipes, cookbooks, standalone = true, removableFrom }: Props) {
+  const { t, p } = useI18n();
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState<string | null>(null);
   const [cookbookId, setCookbookId] = useState<string | null>(null);
+  const [language, setLanguage] = useState<Locale | null>(null);
   const [removed, setRemoved] = useState<string[]>([]);
   const [have, setHave] = useState<string[]>([]);
   const [haveOpen, setHaveOpen] = useState(false);
@@ -43,6 +46,10 @@ export function RecipeList({ recipes, cookbooks, standalone = true, removableFro
     [recipes],
   );
   const showCookbooks = standalone && cookbooks.length > 1;
+  const languages = useMemo(
+    () => [...new Set(recipes.map((r) => r.language).filter((l): l is Locale => Boolean(l)))].sort(),
+    [recipes],
+  );
 
   const q = query.trim().toLowerCase();
   const filtered = recipes.filter(
@@ -50,6 +57,7 @@ export function RecipeList({ recipes, cookbooks, standalone = true, removableFro
       !removed.includes(r.id) &&
       (!category || r.category === category) &&
       (!cookbookId || r.cookbook_ids.includes(cookbookId)) &&
+      (!language || r.language === language) &&
       (!q || r.title.toLowerCase().includes(q) || r.tags.some((tag) => tag.toLowerCase().includes(q))),
   );
 
@@ -76,7 +84,7 @@ export function RecipeList({ recipes, cookbooks, standalone = true, removableFro
       variants={gridVariants}
       initial="hidden"
       animate="show"
-      className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4"
+      className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4"
     >
       <AnimatePresence>
         {items.map((recipe) => (
@@ -99,7 +107,7 @@ export function RecipeList({ recipes, cookbooks, standalone = true, removableFro
         {standalone ? (
           <div>
             <h1 className="font-serif text-3xl font-semibold text-forest-900 sm:text-4xl">{t.recipes.title}</h1>
-            <p className="mt-1 text-sm text-muted">{t.recipes.count(recipes.length)}</p>
+            <p className="mt-1 text-sm text-muted">{p(t.recipes.count, recipes.length)}</p>
           </div>
         ) : (
           <span />
@@ -155,6 +163,14 @@ export function RecipeList({ recipes, cookbooks, standalone = true, removableFro
           ]}
         />
       )}
+      {languages.length > 1 && (
+        <FilterChips
+          layoutId="language-pill"
+          value={language}
+          onChange={setLanguage}
+          options={[{ value: null, label: t.recipes.allLanguages }, ...languages.map((l) => ({ value: l, label: `${localeFlags[l]} ${t.lang[l]}` }))]}
+        />
+      )}
       {categories.length > 0 && (
         <FilterChips
           layoutId="category-pill"
@@ -172,13 +188,13 @@ export function RecipeList({ recipes, cookbooks, standalone = true, removableFro
             {full.length > 0 && (
               <section className="space-y-3">
                 <h2 className="font-serif text-xl font-semibold text-forest-900">✓ {t.search.fullMatches}</h2>
-                {grid(full, `full-${have.join()}-${category}-${cookbookId}-${q}`)}
+                {grid(full, `full-${have.join()}-${category}-${cookbookId}-${language}-${q}`)}
               </section>
             )}
             {partial.length > 0 && (
               <section className="space-y-3">
                 <h2 className="font-serif text-xl font-semibold text-forest-900">≈ {t.search.partialMatches}</h2>
-                {grid(partial, `partial-${have.join()}-${category}-${cookbookId}-${q}`)}
+                {grid(partial, `partial-${have.join()}-${category}-${cookbookId}-${language}-${q}`)}
               </section>
             )}
           </div>
@@ -186,7 +202,7 @@ export function RecipeList({ recipes, cookbooks, standalone = true, removableFro
       ) : filtered.length === 0 ? (
         <p className="py-16 text-center text-muted">{t.recipes.noResults}</p>
       ) : (
-        grid(filtered, `${category}-${cookbookId}-${q}`)
+        grid(filtered, `${category}-${cookbookId}-${language}-${q}`)
       )}
     </div>
   );
@@ -199,7 +215,7 @@ function FilterChips<T extends string | null>(props: {
   options: { value: T; label: string }[];
 }) {
   return (
-    <div className="flex flex-wrap gap-2">
+    <div className="no-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0">
       {props.options.map((option) => {
         const active = props.value === option.value;
         return (
@@ -209,7 +225,7 @@ function FilterChips<T extends string | null>(props: {
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             transition={spring}
-            className={`relative rounded-full px-3.5 py-1.5 text-sm transition-colors ${
+            className={`relative min-h-10 shrink-0 whitespace-nowrap rounded-full px-4 py-1.5 text-sm transition-colors ${
               active ? "text-cream" : "bg-cream/70 text-forest-800 shadow-soft hover:bg-cream"
             }`}
           >
@@ -225,6 +241,7 @@ function FilterChips<T extends string | null>(props: {
 }
 
 function RecipeCard({ recipe, missing, removableFrom, onRemoved }: { recipe: RecipeListItem; missing?: string[]; removableFrom?: string; onRemoved: () => void }) {
+  const { t, f, locale } = useI18n();
   const [pending, startTransition] = useTransition();
   return (
     <motion.div
@@ -252,11 +269,16 @@ function RecipeCard({ recipe, missing, removableFrom, onRemoved }: { recipe: Rec
               {recipe.title.charAt(0).toUpperCase()}
             </div>
           )}
-          {recipe.category && (
-            <span className="glass absolute left-2 top-2 rounded-full px-2.5 py-0.5 text-xs font-medium text-forest-800">
-              {recipe.category}
-            </span>
-          )}
+          <span className="absolute left-2 top-2 flex max-w-[calc(100%-3.5rem)] gap-1">
+            {recipe.category && (
+              <span className="glass truncate rounded-full px-2.5 py-0.5 text-xs font-medium text-forest-800">{recipe.category}</span>
+            )}
+            {recipe.language && recipe.language !== locale && (
+              <span className="glass shrink-0 rounded-full px-2 py-0.5 text-xs font-medium text-forest-800" title={t.lang[recipe.language]}>
+                {localeFlags[recipe.language]}
+              </span>
+            )}
+          </span>
         </div>
         <div className="space-y-1.5 p-3.5">
           <h2 className="line-clamp-2 font-medium leading-snug text-forest-900">{recipe.title}</h2>
@@ -265,8 +287,8 @@ function RecipeCard({ recipe, missing, removableFrom, onRemoved }: { recipe: Rec
               👤 <span className="truncate">{recipe.owner_name}</span> <span title={t.recipes.readOnly}>🔒</span>
             </span>
           )}
-          {totalTime(recipe) && <p className="text-xs text-muted">⏱ {totalTime(recipe)}</p>}
-          {missing && <p className="text-xs font-medium text-amber-700">{t.search.missing(missing.join(", "))}</p>}
+          {totalTime(recipe, t.common.minutes) && <p className="text-xs text-muted">⏱ {totalTime(recipe, t.common.minutes)}</p>}
+          {missing && <p className="text-xs font-medium text-amber-700">{f(t.search.missing, { items: missing.join(", ") })}</p>}
         </div>
       </Link>
       {removableFrom && (
@@ -284,7 +306,7 @@ function RecipeCard({ recipe, missing, removableFrom, onRemoved }: { recipe: Rec
               if (!result?.error) onRemoved();
             })
           }
-          className="glass absolute right-2 top-2 flex size-8 items-center justify-center rounded-full text-sm text-forest-900 shadow-soft hover:bg-red-50 hover:text-red-700"
+          className="glass absolute right-1.5 top-1.5 flex size-10 items-center justify-center rounded-full text-sm text-forest-900 shadow-soft hover:bg-red-50 hover:text-red-700"
         >
           ✕
         </motion.button>
@@ -294,6 +316,7 @@ function RecipeCard({ recipe, missing, removableFrom, onRemoved }: { recipe: Rec
 }
 
 function HavePanel({ items, onChange }: { items: string[]; onChange: (items: string[]) => void }) {
+  const { t } = useI18n();
   const [input, setInput] = useState("");
   const add = () => {
     const parts = input.split(",").map((s) => s.trim()).filter(Boolean);
@@ -341,7 +364,7 @@ function HavePanel({ items, onChange }: { items: string[]; onChange: (items: str
                 exit={{ opacity: 0, scale: 0.8 }}
                 transition={spring}
                 onClick={() => onChange(items.filter((x) => x !== item))}
-                className="flex items-center gap-1.5 rounded-full bg-forest-700 px-3 py-1 text-sm text-cream shadow-soft hover:bg-forest-800"
+                className="flex min-h-10 items-center gap-1.5 rounded-full bg-forest-700 px-3.5 py-1 text-sm text-cream shadow-soft hover:bg-forest-800"
               >
                 {item} <span aria-hidden>✕</span>
               </motion.button>
@@ -356,7 +379,7 @@ function HavePanel({ items, onChange }: { items: string[]; onChange: (items: str
   );
 }
 
-function totalTime(r: RecipeListItem) {
+function totalTime(r: RecipeListItem, minutes: string) {
   const total = (r.prep_minutes ?? 0) + (r.cook_minutes ?? 0);
-  return total ? `${total} ${t.common.minutes}` : "";
+  return total ? `${total} ${minutes}` : "";
 }

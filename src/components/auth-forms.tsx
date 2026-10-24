@@ -3,9 +3,10 @@
 import Link from "next/link";
 import { useActionState } from "react";
 import { signIn, signUp } from "@/app/actions/auth";
-import { t } from "@/i18n";
+import { useI18n } from "@/i18n/client";
 
 export function LoginForm() {
+  const { t } = useI18n();
   const [state, action, pending] = useActionState(signIn, undefined);
 
   return (
@@ -32,6 +33,7 @@ export function LoginForm() {
 }
 
 export function SignupForm({ invite, familyName }: { invite?: string; familyName?: string }) {
+  const { t } = useI18n();
   const [state, action, pending] = useActionState(signUp, undefined);
 
   if (state?.message) {

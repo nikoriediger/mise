@@ -1,7 +1,10 @@
-import { t } from "@/i18n";
+"use client";
+
+import { useI18n } from "@/i18n/client";
 
 /** Shown in place of the recipe scanner when no scanning tool is installed. */
 export function PremiumScanTeaser() {
+  const { t } = useI18n();
   return (
     <section className="relative overflow-hidden rounded-3xl border border-dashed border-sage-300 bg-gradient-to-br from-cream to-mint-100/60 p-5 sm:p-6">
       <div className="flex items-start gap-3">

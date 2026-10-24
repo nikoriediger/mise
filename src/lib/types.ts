@@ -1,3 +1,5 @@
+import type { Locale } from "@/i18n/config";
+
 export type ImageRole = "gallery" | "source";
 
 export type Recipe = {
@@ -13,6 +15,8 @@ export type Recipe = {
   notes: string | null;
   category: string | null;
   tags: string[];
+  /** Language of the recipe's content (de/en/it), if known. */
+  language: Locale | null;
   created_at: string;
   updated_at: string;
 };
@@ -56,7 +60,7 @@ export type RecipeWithImages = Recipe & {
 
 export type RecipeListItem = Pick<
   Recipe,
-  "id" | "title" | "category" | "tags" | "prep_minutes" | "cook_minutes" | "owner_id" | "family_id" | "ingredients"
+  "id" | "title" | "category" | "tags" | "prep_minutes" | "cook_minutes" | "owner_id" | "family_id" | "ingredients" | "language"
 > & {
   owner_name: string;
   is_mine: boolean;
@@ -76,6 +80,7 @@ export type RecipeDraft = {
   notes: string;
   category: string;
   tags: string[];
+  language: Locale | null;
 };
 
 export type FamilyMembership = {

@@ -5,9 +5,11 @@ import { toBlob } from "html-to-image";
 import { useRef, useState } from "react";
 import { spring } from "@/components/motion";
 import { useScale } from "@/components/recipe-scale";
-import { appName, t } from "@/i18n";
+import { appName } from "@/i18n/config";
+import { useI18n } from "@/i18n/client";
 
 export function PrintButton() {
+  const { t } = useI18n();
   return (
     <motion.button className="btn-secondary print:hidden" onClick={() => window.print()} whileTap={{ scale: 0.96 }} transition={spring}>
       🖨 {t.view.print}
@@ -24,6 +26,7 @@ const MAX_INGREDIENTS = 8;
 
 /** Renders a styled preview card to an image and shares it (or downloads it as a fallback). */
 export function ShareButton({ coverUrl, facts }: ShareProps) {
+  const { t, p, f } = useI18n();
   const { recipe, scaled, amount } = useScale();
   const cardRef = useRef<HTMLDivElement>(null);
   const [photo, setPhoto] = useState<string | null>(null);
@@ -63,7 +66,7 @@ export function ShareButton({ coverUrl, facts }: ShareProps) {
   }
 
   const shown = scaled.slice(0, MAX_INGREDIENTS);
-  const servingsFact = recipe.servings ? t.recipes.servingsCount(amount) : null;
+  const servingsFact = recipe.servings ? p(t.recipes.servingsCount, amount) : null;
 
   return (
     <div className="relative print:hidden">
@@ -103,11 +106,11 @@ export function ShareButton({ coverUrl, facts }: ShareProps) {
               ))}
             </ul>
             {scaled.length > MAX_INGREDIENTS && (
-              <p className="mt-3 text-[28px] text-muted">{t.view.moreIngredients(scaled.length - MAX_INGREDIENTS)}</p>
+              <p className="mt-3 text-[28px] text-muted">{f(t.view.moreIngredients, { n: scaled.length - MAX_INGREDIENTS })}</p>
             )}
             <p className="mt-auto flex items-center gap-4 text-[30px] font-medium text-forest-800">
               <span className="flex size-16 items-center justify-center rounded-2xl bg-forest-700 text-[34px]">🌿</span>
-              {t.view.sharedFrom(appName)}
+              {f(t.view.sharedFrom, { app: appName })}
             </p>
           </div>
         </div>

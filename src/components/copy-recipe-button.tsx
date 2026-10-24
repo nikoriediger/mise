@@ -3,10 +3,11 @@
 import { useState, useTransition } from "react";
 import { copyRecipe } from "@/app/actions/recipes";
 import { Dialog } from "@/components/dialog";
-import { t } from "@/i18n";
+import { useI18n } from "@/i18n/client";
 
 /** Copies someone else's recipe as the user's own and opens the copy for editing. */
 export function CopyRecipeButton({ recipeId }: { recipeId: string }) {
+  const { t } = useI18n();
   const [open, setOpen] = useState(false);
   const [error, setError] = useState("");
   const [pending, startTransition] = useTransition();

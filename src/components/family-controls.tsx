@@ -4,9 +4,10 @@ import { useState, useSyncExternalStore, useTransition } from "react";
 import { createInvite, removeMember, revokeInvite } from "@/app/actions/family";
 import { ConfirmDialog } from "@/components/dialog";
 import type { Invite } from "@/lib/data";
-import { formatDate, t } from "@/i18n";
+import { useI18n } from "@/i18n/client";
 
 export function InvitePanel({ invites }: { invites: Invite[] }) {
+  const { t, date } = useI18n();
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState(false);
   const origin = useSyncExternalStore(noopSubscribe, () => window.location.origin, () => "");
@@ -41,7 +42,7 @@ export function InvitePanel({ invites }: { invites: Invite[] }) {
               <li key={invite.token} className="card flex flex-wrap items-center gap-2 p-3">
                 <code className="min-w-0 flex-1 truncate text-xs">{link(invite.token)}</code>
                 <span className="text-xs text-muted">
-                  {t.family.expires} {formatDate(invite.expires_at)}
+                  {t.family.expires} {date(invite.expires_at)}
                 </span>
                 <CopyButton text={link(invite.token)} />
                 <button
@@ -62,6 +63,7 @@ export function InvitePanel({ invites }: { invites: Invite[] }) {
 const noopSubscribe = () => () => {};
 
 function CopyButton({ text }: { text: string }) {
+  const { t } = useI18n();
   const [copied, setCopied] = useState(false);
   return (
     <button
@@ -78,6 +80,7 @@ function CopyButton({ text }: { text: string }) {
 }
 
 export function RemoveMemberButton({ userId }: { userId: string }) {
+  const { t } = useI18n();
   const [open, setOpen] = useState(false);
   const [pending, startTransition] = useTransition();
   return (
