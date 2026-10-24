@@ -15,9 +15,23 @@
 - Recipes with ingredients, steps, notes, servings, times, category and tags
 - Photos of the dish plus scans of the original recipe (card, cookbook page)
 - Families: invite family or friends with a one-time link
-- Everyone has their own cookbooks; all family members can read and copy them, only the owner can edit
+- Everyone has a main cookbook with all their recipes, plus collections that can include
+  any family recipe (live links); only the author can edit a recipe
+- Portion scaling (parses quantities like `200 g`, `½ TL`, `2-3 Eier`)
+- Cook mode: keeps the screen on, tap to check off ingredients and steps
+- "What do you have?" search by ingredients
+- Family notes below each recipe
+- Clean A4 print view and a share image for WhatsApp & co.
 - Open sign-up or invite-only mode
 - English and German UI
+- Premium (coming soon): scan recipes from photos with AI
+
+## Tests
+
+```bash
+npm test          # unit tests (quantity parsing, ingredient search)
+npm run test:db   # migrations + row level security in an in-memory Postgres
+```
 
 ## Setup
 

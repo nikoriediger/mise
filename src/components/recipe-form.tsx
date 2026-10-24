@@ -6,6 +6,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useRef, useState } from "react";
 import { saveRecipe, type ImageState } from "@/app/actions/recipes";
 import { spring } from "@/components/motion";
+import { PremiumScanTeaser } from "@/components/premium-teaser";
 import { recipeFormTools } from "@/features/registry";
 import { compressImage, extensionFor } from "@/lib/image-compress";
 import { createClient } from "@/lib/supabase/client";
@@ -182,7 +183,7 @@ export function RecipeForm({ familyId, cookbooks, initialCollectionIds, recipe, 
         {recipe ? t.form.editTitle : t.form.newTitle}
       </h1>
 
-      {!recipe && recipeFormTools.map((Tool, i) => <Tool key={i} onPrefill={prefill} />)}
+      {!recipe && (recipeFormTools.length > 0 ? recipeFormTools.map((Tool, i) => <Tool key={i} onPrefill={prefill} />) : <PremiumScanTeaser />)}
 
       <section className="card space-y-4 p-5 sm:p-6">
         <div>

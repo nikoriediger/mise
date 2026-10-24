@@ -147,7 +147,7 @@ export async function listRecipes(cookbookId?: string): Promise<RecipeListItem[]
   const supabase = await createClient();
   let query = supabase
     .from("recipes")
-    .select("id, title, category, tags, prep_minutes, cook_minutes, owner_id, family_id, recipe_images(storage_path, role, is_cover, sort_order)")
+    .select("id, title, category, tags, prep_minutes, cook_minutes, owner_id, family_id, ingredients, recipe_images(storage_path, role, is_cover, sort_order)")
     .order("title");
 
   if (cookbookId) {
@@ -178,6 +178,7 @@ export async function listRecipes(cookbookId?: string): Promise<RecipeListItem[]
     cook_minutes: recipe.cook_minutes,
     owner_id: recipe.owner_id,
     family_id: recipe.family_id,
+    ingredients: recipe.ingredients,
     owner_name: ownerName(recipe.family_id, recipe.owner_id),
     is_mine: recipe.owner_id === user.id,
     cookbook_ids: membership.get(recipe.id) ?? [],
@@ -220,6 +221,38 @@ export async function getRecipe(id: string): Promise<RecipeWithImages | null> {
     canEdit: recipe.owner_id === user.id,
     cookbooks: cookbooks.filter((b) => inBooks.includes(b.id)),
   };
+}
+
+export type RecipeNote = {
+  id: string;
+  body: string;
+  author_name: string;
+  created_at: string;
+  edited: boolean;
+  canEdit: boolean;
+  canDelete: boolean;
+};
+
+export async function getRecipeNotes(recipe: Pick<RecipeWithImages, "id" | "family_id" | "canEdit">): Promise<RecipeNote[]> {
+  const { user, ownerName } = await getLibrary();
+  const families = await getFamilyMemberships();
+  const isAdmin = families.some((f) => f.family_id === recipe.family_id && f.role === "owner");
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("recipe_notes")
+    .select("id, body, author_id, created_at, updated_at")
+    .eq("recipe_id", recipe.id)
+    .order("created_at");
+  if (error) throw error;
+  return data.map((n) => ({
+    id: n.id,
+    body: n.body,
+    author_name: ownerName(recipe.family_id, n.author_id),
+    created_at: n.created_at,
+    edited: new Date(n.updated_at).getTime() - new Date(n.created_at).getTime() > 1000,
+    canEdit: n.author_id === user.id,
+    canDelete: n.author_id === user.id || recipe.canEdit || isAdmin,
+  }));
 }
 
 export type Member = {

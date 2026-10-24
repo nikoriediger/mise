@@ -56,7 +56,7 @@ export type RecipeWithImages = Recipe & {
 
 export type RecipeListItem = Pick<
   Recipe,
-  "id" | "title" | "category" | "tags" | "prep_minutes" | "cook_minutes" | "owner_id" | "family_id"
+  "id" | "title" | "category" | "tags" | "prep_minutes" | "cook_minutes" | "owner_id" | "family_id" | "ingredients"
 > & {
   owner_name: string;
   is_mine: boolean;

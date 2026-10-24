@@ -99,6 +99,50 @@ body {
   @apply border border-white/60 bg-cream/60 backdrop-blur-xl backdrop-saturate-150;
 }
 
+/* Clean A4 print: no backgrounds, shadows, animations or app chrome */
+@media print {
+  @page {
+    size: A4;
+    margin: 14mm 16mm;
+  }
+  html,
+  body {
+    background: white !important;
+    color: black;
+    font-size: 11pt;
+  }
+  header,
+  nav,
+  .glass-noprint {
+    display: none !important;
+  }
+  main {
+    padding: 0 !important;
+    max-width: none !important;
+  }
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+    box-shadow: none !important;
+  }
+  /* Elements mid-animation (Framer Motion inline styles) must still print */
+  [style*="opacity"] {
+    opacity: 1 !important;
+  }
+  [style*="transform"] {
+    transform: none !important;
+  }
+  .card {
+    background: white !important;
+  }
+  h1,
+  h2 {
+    break-after: avoid;
+  }
+}
+
 /* Animated glowing border for highlighted zones */
 @property --glow-angle {
   syntax: "<angle>";

@@ -140,6 +140,32 @@ ok((await one(`select count(*)::int n from public.recipes where id in ($1, $2)`,
 ok((await one(`select count(*)::int n from public.cookbook_recipes`)).n === 0, "links of a deleted collection are gone");
 
 // ---------------------------------------------------------------------------
+// Family notes
+// ---------------------------------------------------------------------------
+let nikoNote;
+await as(B, async () => {
+  nikoNote = (await one(`insert into public.recipe_notes (recipe_id, author_id, body) values ($1, $2, 'Weniger Zucker') returning id`, [rPapa, B])).id;
+  ok(Boolean(nikoNote), "Niko can add a note to Papa's recipe");
+  ok(Boolean((await tryQ(`insert into public.recipe_notes (recipe_id, author_id, body) values ($1, $2, 'fake')`, [rPapa, A])).error), "Niko cannot write a note in Papa's name");
+  ok((await rows(`update public.recipe_notes set body = 'Viel weniger Zucker' where id = $1 returning id`, [nikoNote])).length === 1, "Niko can edit his note");
+});
+await as(A, async () => {
+  ok((await rows(`select id from public.recipe_notes where recipe_id = $1`, [rPapa])).length === 1, "Papa can read notes on his recipe");
+  ok((await rows(`update public.recipe_notes set body = 'hacked' where id = $1 returning id`, [nikoNote])).length === 0, "Papa cannot edit Niko's note");
+  const own = (await one(`insert into public.recipe_notes (recipe_id, author_id, body) values ($1, $2, 'Danke!') returning id`, [rNiko, A])).id;
+  ok(Boolean(own), "Papa can add a note to Niko's recipe");
+});
+await as(B, async () => {
+  ok((await rows(`delete from public.recipe_notes where recipe_id = $1 and author_id = $2 returning id`, [rNiko, A])).length === 1, "recipe owner can delete notes on his recipe");
+});
+await as(A, async () => {
+  ok((await rows(`delete from public.recipe_notes where id = $1 returning id`, [nikoNote])).length === 1, "family admin can delete any note");
+});
+await as("00000000-0000-0000-0000-00000000000f", async () => {
+  ok(Boolean((await tryQ(`insert into public.recipe_notes (recipe_id, author_id, body) values ($1, $2, 'x')`, [rPapa, "00000000-0000-0000-0000-00000000000f"])).error), "outsider cannot add notes");
+});
+
+// ---------------------------------------------------------------------------
 // Outsider
 // ---------------------------------------------------------------------------
 const STRANGER = "00000000-0000-0000-0000-00000000000f";
