@@ -7,7 +7,7 @@ import { CookLog } from "@/components/cook-log";
 import { CookModeButton } from "@/components/cook-mode";
 import { FavoriteButton } from "@/components/favorite-button";
 import { SaveForOffline } from "@/components/pwa";
-import { Avatar } from "@/components/avatar";
+import { PersonLink } from "@/components/person-link";
 import { CookbookBadge } from "@/components/cookbook-badge";
 import { CookbookMembershipButton } from "@/components/cookbook-membership-button";
 import { CopyRecipeButton } from "@/components/copy-recipe-button";
@@ -19,6 +19,7 @@ import { PrintButton, ShareButton } from "@/components/recipe-actions";
 import { AddToShoppingButton, PlanRecipeButton } from "@/components/recipe-plan-shop";
 import { IngredientsCard, ScaleProvider } from "@/components/recipe-scale";
 import { recipeViewTools } from "@/features/registry";
+import { categoryEmoji, dietEmoji } from "@/lib/taxonomy";
 import { getCookLog, getMyCookbooks, getRecipe, getRecipeNotes, getTranslation } from "@/lib/data";
 import { appName } from "@/i18n/config";
 import { localeFlags } from "@/i18n/config";
@@ -78,11 +79,22 @@ async function RecipeDetail({ params, searchParams }: Pick<PageProps<"/[lang]/re
       <article className="space-y-10 print:space-y-6">
         <div className="flex flex-wrap items-start gap-4">
           <div className="mr-auto min-w-0">
-            {recipe.category && (
-              <p className="mb-1 text-xs font-semibold uppercase tracking-[0.18em] text-moss-600">{recipe.category}</p>
+            {recipe.categories.length > 0 && (
+              <p className="mb-1 text-xs font-semibold uppercase tracking-[0.18em] text-moss-600">
+                {recipe.categories.map((c) => `${categoryEmoji(c)} ${t.categories[c]}`).join(" · ")}
+              </p>
             )}
             <h1 className="break-words font-serif text-3xl font-semibold leading-tight text-forest-900 sm:text-5xl print:text-3xl">{recipe.title}</h1>
             {recipe.origin && <p className="mt-2 font-serif text-lg italic text-moss-600">📜 {recipe.origin}</p>}
+            {recipe.diet.length > 0 && (
+              <ul className="mt-3 flex flex-wrap gap-1.5">
+                {recipe.diet.map((d) => (
+                  <li key={d} className="rounded-full bg-mint-100 px-3 py-1 text-sm font-medium text-forest-800 ring-1 ring-matcha-300/70">
+                    {dietEmoji(d)} {t.diet[d]}
+                  </li>
+                ))}
+              </ul>
+            )}
             {recipe.language && recipe.language !== locale && (
               <p className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-sage-100 px-2.5 py-0.5 text-xs font-medium text-forest-800 print:hidden">
                 {localeFlags[recipe.language]} {t.lang[recipe.language]}
@@ -107,8 +119,14 @@ async function RecipeDetail({ params, searchParams }: Pick<PageProps<"/[lang]/re
               />
             ))}
             {!recipe.canEdit && (
-              <p className="mt-2 flex items-center gap-1.5 text-sm text-muted">
-                <Avatar url={recipe.owner_avatar} name={recipe.owner_name} size="sm" /> {f(t.recipes.byOwner, { name: recipe.owner_name || "…" })} <span className="print:hidden">· 🔒 {t.recipes.readOnly}</span>
+              <p className="mt-2 flex flex-wrap items-center gap-1.5 text-sm text-muted">
+                <PersonLink
+                  userId={recipe.owner_id}
+                  name={recipe.owner_name}
+                  avatarUrl={recipe.owner_avatar}
+                  label={f(t.recipes.byOwner, { name: recipe.owner_name || "…" })}
+                />
+                <span className="print:hidden">· 🔒 {t.recipes.readOnly}</span>
               </p>
             )}
             {recipe.cookbooks.length > 0 && (

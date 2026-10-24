@@ -9,6 +9,7 @@ import { Avatar } from "@/components/avatar";
 import { FavoriteButton } from "@/components/favorite-button";
 import { spring } from "@/components/motion";
 import { allowedMissing, matchIngredients } from "@/lib/ingredient-search";
+import { CATEGORIES, DIETS, categoryEmoji, dietEmoji, type DietKey } from "@/lib/taxonomy";
 import type { Cookbook, RecipeListItem } from "@/lib/types";
 import { useI18n } from "@/i18n/client";
 import { localeFlags, type Locale } from "@/i18n/config";
@@ -37,17 +38,26 @@ type Props = {
 export function RecipeList({ recipes, cookbooks, standalone = true, removableFrom }: Props) {
   const { t, p } = useI18n();
   const [query, setQuery] = useState("");
-  const [category, setCategory] = useState<string | null>(null);
+  // Several categories = any of them; several diet flags = all of them
+  const [cats, setCats] = useState<string[]>([]);
+  const [diets, setDiets] = useState<DietKey[]>([]);
   const [cookbookId, setCookbookId] = useState<string | null>(null);
   const [language, setLanguage] = useState<Locale | null>(null);
   const [quick, setQuick] = useState<"favorites" | "recent" | null>(null);
   const [removed, setRemoved] = useState<string[]>([]);
   const [have, setHave] = useState<string[]>([]);
   const [haveOpen, setHaveOpen] = useState(false);
-  const categories = useMemo(
-    () => [...new Set(recipes.map((r) => r.category).filter((c): c is string => Boolean(c)))].sort(),
-    [recipes],
-  );
+  const categoryOptions = useMemo(() => {
+    const used = new Set(recipes.flatMap((r) => r.categories));
+    const options = CATEGORIES.filter((c) => used.has(c.key)).map((c) => ({ value: c.key as string, label: `${c.emoji} ${t.categories[c.key]}` }));
+    if (options.length && recipes.some((r) => r.categories.length === 0)) options.push({ value: NO_CATEGORY, label: t.recipes.uncategorized });
+    return options;
+  }, [recipes, t]);
+  const dietOptions = useMemo(() => {
+    const used = new Set(recipes.flatMap((r) => r.diet));
+    return DIETS.filter((d) => used.has(d.key)).map((d) => ({ value: d.key, label: `${d.emoji} ${t.diet[d.key]}` }));
+  }, [recipes, t]);
+  const filterKey = [...cats, ...diets].join();
   const showCookbooks = standalone && cookbooks.length > 1;
   const languages = useMemo(
     () => [...new Set(recipes.map((r) => r.language).filter((l): l is Locale => Boolean(l)))].sort(),
@@ -61,7 +71,8 @@ export function RecipeList({ recipes, cookbooks, standalone = true, removableFro
     .filter(
     (r) =>
       !removed.includes(r.id) &&
-      (!category || r.category === category) &&
+      (!cats.length || cats.some((c) => (c === NO_CATEGORY ? r.categories.length === 0 : r.categories.includes(c as never)))) &&
+      diets.every((d) => r.diet.includes(d)) &&
       (!cookbookId || r.cookbook_ids.includes(cookbookId)) &&
       (!language || r.language === language) &&
       (!q || r.title.toLowerCase().includes(q) || r.tags.some((tag) => tag.toLowerCase().includes(q))),
@@ -189,13 +200,11 @@ export function RecipeList({ recipes, cookbooks, standalone = true, removableFro
           options={[{ value: null, label: t.recipes.allLanguages }, ...languages.map((l) => ({ value: l, label: `${localeFlags[l]} ${t.lang[l]}` }))]}
         />
       )}
-      {categories.length > 0 && (
-        <FilterChips
-          layoutId="category-pill"
-          value={category}
-          onChange={setCategory}
-          options={[{ value: null, label: t.recipes.all }, ...categories.map((c) => ({ value: c, label: c }))]}
-        />
+      {categoryOptions.length > 0 && (
+        <MultiChips label={t.recipes.categories} allLabel={t.recipes.all} value={cats} onChange={setCats} options={categoryOptions} />
+      )}
+      {dietOptions.length > 0 && (
+        <MultiChips label={t.recipes.diet} allLabel={t.recipes.all} value={diets} onChange={setDiets} options={dietOptions} />
       )}
 
       {have.length > 0 ? (
@@ -206,13 +215,13 @@ export function RecipeList({ recipes, cookbooks, standalone = true, removableFro
             {full.length > 0 && (
               <section className="space-y-3">
                 <h2 className="font-serif text-xl font-semibold text-forest-900">✓ {t.search.fullMatches}</h2>
-                {grid(full, `full-${have.join()}-${category}-${cookbookId}-${language}-${q}`)}
+                {grid(full, `full-${have.join()}-${filterKey}-${cookbookId}-${language}-${q}`)}
               </section>
             )}
             {partial.length > 0 && (
               <section className="space-y-3">
                 <h2 className="font-serif text-xl font-semibold text-forest-900">≈ {t.search.partialMatches}</h2>
-                {grid(partial, `partial-${have.join()}-${category}-${cookbookId}-${language}-${q}`)}
+                {grid(partial, `partial-${have.join()}-${filterKey}-${cookbookId}-${language}-${q}`)}
               </section>
             )}
           </div>
@@ -220,7 +229,7 @@ export function RecipeList({ recipes, cookbooks, standalone = true, removableFro
       ) : filtered.length === 0 ? (
         <p className="py-16 text-center text-muted">{quick === "favorites" && !q ? t.favorites.none : t.recipes.noResults}</p>
       ) : (
-        grid(filtered, `${category}-${cookbookId}-${language}-${quick}-${q}`)
+        grid(filtered, `${filterKey}-${cookbookId}-${language}-${quick}-${q}`)
       )}
     </div>
   );
@@ -258,6 +267,45 @@ function FilterChips<T extends string | null>(props: {
   );
 }
 
+const NO_CATEGORY = "__none";
+
+function MultiChips<T extends string>(props: {
+  label: string;
+  allLabel: string;
+  value: T[];
+  onChange: (value: T[]) => void;
+  options: { value: T; label: string }[];
+}) {
+  const chip = (active: boolean) =>
+    `min-h-10 shrink-0 whitespace-nowrap rounded-full px-4 py-1.5 text-sm transition-colors ${
+      active ? "bg-forest-700 text-cream shadow-soft" : "bg-cream/70 text-forest-800 shadow-soft hover:bg-cream"
+    }`;
+  return (
+    <div role="group" aria-label={props.label} className="no-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0">
+      <motion.button type="button" aria-pressed={!props.value.length} onClick={() => props.onChange([])} whileTap={{ scale: 0.95 }} transition={spring} className={chip(!props.value.length)}>
+        {props.allLabel}
+      </motion.button>
+      {props.options.map((option) => {
+        const active = props.value.includes(option.value);
+        return (
+          <motion.button
+            key={option.value}
+            type="button"
+            aria-pressed={active}
+            onClick={() => props.onChange(active ? props.value.filter((v) => v !== option.value) : [...props.value, option.value])}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            transition={spring}
+            className={chip(active)}
+          >
+            {option.label}
+          </motion.button>
+        );
+      })}
+    </div>
+  );
+}
+
 function RecipeCard({ recipe, missing, removableFrom, onRemoved }: { recipe: RecipeListItem; missing?: string[]; removableFrom?: string; onRemoved: () => void }) {
   const { t, f, locale } = useI18n();
   const [pending, startTransition] = useTransition();
@@ -288,8 +336,17 @@ function RecipeCard({ recipe, missing, removableFrom, onRemoved }: { recipe: Rec
             </div>
           )}
           <span className="absolute left-2 top-2 flex max-w-[calc(100%-3.5rem)] gap-1">
-            {recipe.category && (
-              <span className="glass truncate rounded-full px-2.5 py-0.5 text-xs font-medium text-forest-800">{recipe.category}</span>
+            {recipe.categories[0] && (
+              <span className="glass truncate rounded-full px-2.5 py-0.5 text-xs font-medium text-forest-800">
+                {categoryEmoji(recipe.categories[0])} {t.categories[recipe.categories[0]]}
+                {recipe.categories.length > 1 && ` +${recipe.categories.length - 1}`}
+              </span>
+            )}
+            {recipe.diet.length > 0 && (
+              <span className="glass shrink-0 rounded-full px-2 py-0.5 text-xs" title={recipe.diet.map((d) => t.diet[d]).join(", ")}>
+                {/* vegan already says vegetarian */}
+                {recipe.diet.filter((d) => !(d === "vegetarian" && recipe.diet.includes("vegan"))).map(dietEmoji).join("")}
+              </span>
             )}
             {recipe.language && recipe.language !== locale && (
               <span className="glass shrink-0 rounded-full px-2 py-0.5 text-xs font-medium text-forest-800" title={t.lang[recipe.language]}>

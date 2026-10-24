@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { connection } from "next/server";
 import { Suspense } from "react";
 import { Loading } from "@/components/loading";
 import { WeekPlan } from "@/components/week-plan";
@@ -28,6 +29,8 @@ function mondayOf(iso?: string) {
 
 async function Plan({ searchParams }: Pick<PageProps<"/[lang]/plan">, "searchParams">) {
   const { week } = await searchParams;
+  // "This week" depends on the current date, so render at request time
+  await connection();
   const weekStart = mondayOf(typeof week === "string" ? week : undefined);
   const end = new Date(`${weekStart}T12:00:00Z`);
   end.setUTCDate(end.getUTCDate() + 6);

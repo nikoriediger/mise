@@ -78,7 +78,6 @@
     "steps": "Steps",
     "step": "Step {n}",
     "notes": "Notes",
-    "category": "Category",
     "tags": "Tags",
     "images": "Photos",
     "sources": "Original recipe",
@@ -98,7 +97,10 @@
     },
     "readOnly": "read only",
     "removeFromCookbook": "Remove from this cookbook",
-    "actions": "More actions"
+    "actions": "More actions",
+    "categories": "Categories",
+    "diet": "Diet",
+    "uncategorized": "No category"
   },
   "form": {
     "newTitle": "New recipe",
@@ -120,10 +122,8 @@
     "moveDown": "Move down",
     "stepPlaceholder": "Describe this step…",
     "notes": "Notes",
-    "category": "Category",
-    "categoryPlaceholder": "e.g. Cakes",
     "tags": "Tags",
-    "tagsHint": "Separated by commas",
+    "tagsHint": "Your own keywords, e.g. Christmas or Grandma's classic",
     "photos": "Photos of the dish",
     "addPhotos": "Add photos",
     "sources": "Original recipe (scans)",
@@ -135,7 +135,14 @@
     "moveToSources": "Move to original recipe",
     "titleRequired": "Please enter a title.",
     "uploadFailed": "Some images could not be uploaded.",
-    "duplicateHint": "A recipe with this name already exists:"
+    "duplicateHint": "A recipe with this name already exists:",
+    "categories": "Categories",
+    "categoriesHint": "Pick as many as fit",
+    "diet": "Diet",
+    "tagPlaceholder": "Type a tag…",
+    "addTag": "Add",
+    "removeTag": "Remove {tag}",
+    "tagSuggestions": "Already used in the family"
   },
   "cookbooks": {
     "title": "Cookbooks",
@@ -268,7 +275,16 @@
     "pushUnsupported": "This device or browser doesn't support notifications.",
     "pushIosHint": "iPhone: first install the app via “Share → Add to Home Screen” and open it from there.",
     "pushDenied": "Notifications are blocked. Allow them in your browser settings.",
-    "pushTest": "Send test"
+    "pushTest": "Send test",
+    "pushNoDevice": "This device isn't registered on the server. Tap “Set up again”.",
+    "pushSent": {
+      "one": "Sent to {n} device ✓ – if nothing arrives, see the tip below.",
+      "other": "Sent to {n} devices ✓ – if nothing arrives, see the tip below."
+    },
+    "pushFailed": "The push service refused it (error {code}). Tap “Set up again”.",
+    "pushNotConfigured": "Notifications aren't set up on the server yet.",
+    "pushReset": "Set up again on this device",
+    "pushHelp": "Nothing arrived? Android: Settings → Apps → Chrome → allow notifications. PC/Mac: allow notifications for your browser in the system settings and turn off Do Not Disturb. iPhone: open the app from the Home Screen."
   },
   "push": {
     "noteTitle": "💬 New note on “{recipe}”",
@@ -393,5 +409,45 @@
       "en": "English",
       "it": "Italian"
     }
+  },
+  "people": {
+    "cooked": {
+      "one": "has cooked with {app} {n} time",
+      "other": "has cooked with {app} {n} times"
+    },
+    "cookedNone": "hasn't cooked with {app} yet",
+    "since": "member since {date}",
+    "recipes": "Recipes by {name}",
+    "myRecipes": "My recipes",
+    "cookbooks": "Cookbooks by {name}",
+    "myCookbooks": "My cookbooks",
+    "recentCooking": "Recently cooked",
+    "noRecipes": "No own recipes yet.",
+    "edit": "Edit profile",
+    "view": "View {name}'s profile",
+    "notFound": "This profile doesn't exist or isn't part of your family."
+  },
+  "categories": {
+    "breakfast": "Breakfast",
+    "starters": "Starters & snacks",
+    "salads": "Salads",
+    "soups": "Soups & stews",
+    "mains": "Mains",
+    "pasta": "Pasta & rice",
+    "sides": "Sides",
+    "bread": "Bread & rolls",
+    "cakes": "Cakes & tarts",
+    "cookies": "Cookies & pastries",
+    "desserts": "Desserts",
+    "sauces": "Sauces, dips & preserves",
+    "drinks": "Drinks"
+  },
+  "diet": {
+    "meat": "with meat",
+    "fish": "with fish",
+    "vegetarian": "Vegetarian",
+    "vegan": "Vegan",
+    "gluten_free": "Gluten-free",
+    "lactose_free": "Lactose-free"
   }
 }

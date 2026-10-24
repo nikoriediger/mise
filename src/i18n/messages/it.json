@@ -78,7 +78,6 @@
     "steps": "Procedimento",
     "step": "Passaggio {n}",
     "notes": "Note",
-    "category": "Categoria",
     "tags": "Parole chiave",
     "images": "Foto",
     "sources": "Ricetta originale",
@@ -98,7 +97,10 @@
     },
     "readOnly": "sola lettura",
     "removeFromCookbook": "Rimuovi da questo ricettario",
-    "actions": "Altre azioni"
+    "actions": "Altre azioni",
+    "categories": "Categorie",
+    "diet": "Alimentazione",
+    "uncategorized": "Senza categoria"
   },
   "form": {
     "newTitle": "Nuova ricetta",
@@ -120,10 +122,8 @@
     "moveDown": "Sposta giù",
     "stepPlaceholder": "Descrivi questo passaggio…",
     "notes": "Note",
-    "category": "Categoria",
-    "categoryPlaceholder": "es. Torte",
     "tags": "Parole chiave",
-    "tagsHint": "Separate da virgole",
+    "tagsHint": "Parole tue, ad es. Natale o il classico della nonna",
     "photos": "Foto del piatto",
     "addPhotos": "Aggiungi foto",
     "sources": "Ricetta originale (scansioni)",
@@ -135,7 +135,14 @@
     "moveToSources": "Sposta nella ricetta originale",
     "titleRequired": "Inserisci un titolo.",
     "uploadFailed": "Non è stato possibile caricare alcune immagini.",
-    "duplicateHint": "Esiste già una ricetta con questo nome:"
+    "duplicateHint": "Esiste già una ricetta con questo nome:",
+    "categories": "Categorie",
+    "categoriesHint": "Anche più di una",
+    "diet": "Alimentazione",
+    "tagPlaceholder": "Scrivi una parola chiave…",
+    "addTag": "Aggiungi",
+    "removeTag": "Rimuovi {tag}",
+    "tagSuggestions": "Già usate in famiglia"
   },
   "cookbooks": {
     "title": "Ricettari",
@@ -268,7 +275,16 @@
     "pushUnsupported": "Questo dispositivo o browser non supporta le notifiche.",
     "pushIosHint": "iPhone: installa prima l'app con “Condividi → Aggiungi alla schermata Home” e aprila da lì.",
     "pushDenied": "Le notifiche sono bloccate. Consentile nelle impostazioni del browser.",
-    "pushTest": "Invia prova"
+    "pushTest": "Invia prova",
+    "pushNoDevice": "Questo dispositivo non è registrato sul server. Tocca “Configura di nuovo”.",
+    "pushSent": {
+      "one": "Inviata a {n} dispositivo ✓ – se non arriva nulla, vedi il suggerimento sotto.",
+      "other": "Inviata a {n} dispositivi ✓ – se non arriva nulla, vedi il suggerimento sotto."
+    },
+    "pushFailed": "Il servizio push l'ha rifiutata (errore {code}). Tocca “Configura di nuovo”.",
+    "pushNotConfigured": "Le notifiche non sono ancora configurate sul server.",
+    "pushReset": "Configura di nuovo su questo dispositivo",
+    "pushHelp": "Non è arrivato nulla? Android: Impostazioni → App → Chrome → consenti le notifiche. PC/Mac: consenti le notifiche del browser nelle impostazioni di sistema e disattiva Non disturbare. iPhone: apri l'app dalla schermata Home."
   },
   "push": {
     "noteTitle": "💬 Nuova nota su “{recipe}”",
@@ -393,5 +409,45 @@
       "en": "l'inglese",
       "it": "l'italiano"
     }
+  },
+  "people": {
+    "cooked": {
+      "one": "ha già cucinato {n} volta con {app}",
+      "other": "ha già cucinato {n} volte con {app}"
+    },
+    "cookedNone": "non ha ancora cucinato con {app}",
+    "since": "membro dal {date}",
+    "recipes": "Ricette di {name}",
+    "myRecipes": "Le mie ricette",
+    "cookbooks": "Ricettari di {name}",
+    "myCookbooks": "I miei ricettari",
+    "recentCooking": "Cucinato di recente",
+    "noRecipes": "Ancora nessuna ricetta propria.",
+    "edit": "Modifica profilo",
+    "view": "Vedi il profilo di {name}",
+    "notFound": "Questo profilo non esiste o non fa parte della tua famiglia."
+  },
+  "categories": {
+    "breakfast": "Colazione",
+    "starters": "Antipasti & snack",
+    "salads": "Insalate",
+    "soups": "Zuppe & minestre",
+    "mains": "Secondi piatti",
+    "pasta": "Pasta & riso",
+    "sides": "Contorni",
+    "bread": "Pane & panini",
+    "cakes": "Torte",
+    "cookies": "Biscotti & pasticcini",
+    "desserts": "Dolci al cucchiaio",
+    "sauces": "Salse, dip & conserve",
+    "drinks": "Bevande"
+  },
+  "diet": {
+    "meat": "con carne",
+    "fish": "con pesce",
+    "vegetarian": "Vegetariano",
+    "vegan": "Vegano",
+    "gluten_free": "Senza glutine",
+    "lactose_free": "Senza lattosio"
   }
 }

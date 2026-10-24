@@ -7,9 +7,11 @@ import { useRef, useState } from "react";
 import { saveRecipe, type ImageState } from "@/app/actions/recipes";
 import { spring } from "@/components/motion";
 import { PremiumScanTeaser } from "@/components/premium-teaser";
+import { CategoryPicker, DietPicker, TagInput } from "@/components/taxonomy-fields";
 import { recipeFormTools } from "@/features/registry";
 import { compressImage, extensionFor } from "@/lib/image-compress";
 import { createClient } from "@/lib/supabase/client";
+import { cleanCategories, cleanDiet, cleanTags, type CategoryKey, type DietKey } from "@/lib/taxonomy";
 import { IMAGE_BUCKET, type Cookbook, type ImageRole, type RecipeDraft, type RecipeWithImages } from "@/lib/types";
 import { useI18n } from "@/i18n/client";
 import { localeFlags, locales, type Locale } from "@/i18n/config";
@@ -34,8 +36,9 @@ type Fields = {
   notes: string;
   origin: string;
   story: string;
-  category: string;
-  tags: string;
+  categories: CategoryKey[];
+  diet: DietKey[];
+  tags: string[];
 };
 
 type Step = { key: string; text: string };
@@ -54,9 +57,11 @@ type Props = {
   draftId?: string;
   /** Existing recipes, for the duplicate hint (new recipes only). */
   existing?: ExistingRecipe[];
+  /** Tags already used in the family, most used first. */
+  tagSuggestions?: string[];
 };
 
-export function RecipeForm({ familyId, cookbooks, initialCollectionIds, recipe, draftId, existing = [] }: Props) {
+export function RecipeForm({ familyId, cookbooks, initialCollectionIds, recipe, draftId, existing = [], tagSuggestions = [] }: Props) {
   const { t } = useI18n();
   const recipeId = recipe?.id ?? draftId!;
   const [collectionIds, setCollectionIds] = useState<string[]>(initialCollectionIds);
@@ -114,7 +119,15 @@ export function RecipeForm({ familyId, cookbooks, initialCollectionIds, recipe, 
   }
 
   function prefill(draft: Partial<RecipeDraft>, sourceFiles: File[], galleryFiles: File[] = []) {
-    setFields((f) => ({ ...f, ...toFields(draft), language: draft.language ?? f.language }));
+    setFields((f) => ({
+      ...f,
+      ...toFields(draft),
+      language: draft.language ?? f.language,
+      // Keep what was already picked and add what the scan or import found
+      categories: cleanCategories([...f.categories, ...(draft.categories ?? [])]),
+      diet: cleanDiet([...f.diet, ...(draft.diet ?? [])]),
+      tags: cleanTags([...f.tags, ...(draft.tags ?? [])]),
+    }));
     if (draft.steps) setSteps(toSteps(draft.steps));
     if (sourceFiles.length) addFiles(sourceFiles, "source");
     if (galleryFiles.length) addFiles(galleryFiles, "gallery");
@@ -257,17 +270,12 @@ export function RecipeForm({ familyId, cookbooks, initialCollectionIds, recipe, 
           <NumberField id="prep_minutes" label={t.form.prepMinutes} value={fields.prep_minutes} onChange={set("prep_minutes")} />
           <NumberField id="cook_minutes" label={t.form.cookMinutes} value={fields.cook_minutes} onChange={set("cook_minutes")} />
         </div>
-        <div className="grid gap-3 sm:grid-cols-2">
-          <div>
-            <label className="label" htmlFor="category">{t.form.category}</label>
-            <input id="category" className="input" value={fields.category} onChange={set("category")} placeholder={t.form.categoryPlaceholder} />
-          </div>
-          <div>
-            <label className="label" htmlFor="tags">{t.form.tags}</label>
-            <input id="tags" className="input" value={fields.tags} onChange={set("tags")} />
-            <p className="hint">{t.form.tagsHint}</p>
-          </div>
-        </div>
+      </section>
+
+      <section className="card space-y-5 p-5 sm:p-6">
+        <CategoryPicker value={fields.categories} onChange={(categories) => setFields((f) => ({ ...f, categories }))} />
+        <DietPicker value={fields.diet} onChange={(diet) => setFields((f) => ({ ...f, diet }))} />
+        <TagInput value={fields.tags} onChange={(tags) => setFields((f) => ({ ...f, tags }))} suggestions={tagSuggestions} />
       </section>
 
       <section className="card p-5 sm:p-6">
@@ -529,7 +537,7 @@ function ImageSection(props: {
 }
 
 function toFields(
-  r?: Partial<Omit<RecipeDraft, "notes" | "category" | "origin" | "story"> & { notes: string | null; category: string | null; origin: string | null; story: string | null }>,
+  r?: Partial<Omit<RecipeDraft, "notes" | "origin" | "story"> & { notes: string | null; origin: string | null; story: string | null }>,
 ): Fields {
   const num = (n: number | null | undefined) => (n == null ? "" : String(n));
   return {
@@ -541,8 +549,9 @@ function toFields(
     notes: r?.notes ?? "",
     origin: r?.origin ?? "",
     story: r?.story ?? "",
-    category: r?.category ?? "",
-    tags: (r?.tags ?? []).join(", "),
+    categories: cleanCategories(r?.categories),
+    diet: cleanDiet(r?.diet),
+    tags: cleanTags(r?.tags),
     language: r?.language ?? null,
   };
 }
@@ -567,8 +576,9 @@ function toDraft(f: Fields, steps: Step[]): RecipeDraft {
     notes: f.notes,
     origin: f.origin,
     story: f.story,
-    category: f.category,
-    tags: f.tags.split(","),
+    categories: f.categories,
+    diet: f.diet,
+    tags: f.tags,
     language: f.language,
   };
 }

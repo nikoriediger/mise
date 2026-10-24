@@ -3,7 +3,7 @@
 import { motion } from "framer-motion";
 import { useEffect, useState, useTransition } from "react";
 import { setNotificationPrefs } from "@/app/actions/profile";
-import { savePushSubscription, sendTestPush } from "@/app/actions/push";
+import { savePushSubscription, sendTestPush, type TestPushResult } from "@/app/actions/push";
 import { spring } from "@/components/motion";
 import { useI18n } from "@/i18n/client";
 
@@ -14,41 +14,55 @@ function base64ToBytes(base64: string) {
   return Uint8Array.from(atob(padded), (c) => c.charCodeAt(0));
 }
 
-async function detect(): Promise<DeviceState> {
-  if (!("serviceWorker" in navigator) || !("PushManager" in window) || !("Notification" in window)) {
+function supported() {
+  return "serviceWorker" in navigator && "PushManager" in window && "Notification" in window;
+}
+
+/**
+ * Looks at the browser's subscription and makes sure the server knows it
+ * (re-registers it on every visit, so a failed earlier save heals itself).
+ */
+async function detectAndSync(): Promise<DeviceState> {
+  if (!supported()) {
     const ios = /iPhone|iPad|iPod/.test(navigator.userAgent);
     return ios && !window.matchMedia("(display-mode: standalone)").matches ? "ios-install" : "unsupported";
   }
   if (Notification.permission === "denied") return "denied";
   const reg = await navigator.serviceWorker.ready;
-  return (await reg.pushManager.getSubscription()) ? "on" : "off";
+  const sub = await reg.pushManager.getSubscription();
+  if (!sub || Notification.permission !== "granted") return "off";
+  const { ok } = await savePushSubscription(sub.toJSON());
+  return ok ? "on" : "off";
 }
 
 /** Device registration for push + which notifications someone wants. */
 export function NotificationSettings({ notifyNotes, notifyNewRecipes }: { notifyNotes: boolean; notifyNewRecipes: boolean }) {
-  const { t } = useI18n();
+  const { t, p, f } = useI18n();
   const [device, setDevice] = useState<DeviceState>("checking");
   const [prefs, setPrefs] = useState({ notify_notes: notifyNotes, notify_new_recipes: notifyNewRecipes });
-  const [message, setMessage] = useState("");
+  const [result, setResult] = useState<TestPushResult | null>(null);
   const [pending, startTransition] = useTransition();
 
   useEffect(() => {
-    detect().then(setDevice).catch(() => setDevice("unsupported"));
+    detectAndSync().then(setDevice).catch(() => setDevice("unsupported"));
   }, []);
 
-  async function enableDevice(): Promise<boolean> {
+  /** Asks for permission and registers this device (fresh = drop the old browser subscription first). */
+  async function enableDevice(fresh = false): Promise<boolean> {
     const key = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
-    if (!key) return false;
+    if (!key || !supported()) return false;
     const permission = await Notification.requestPermission();
     if (permission !== "granted") {
       setDevice(permission === "denied" ? "denied" : "off");
       return false;
     }
     const reg = await navigator.serviceWorker.ready;
-    const sub = (await reg.pushManager.getSubscription()) ?? (await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: base64ToBytes(key) }));
-    const result = await savePushSubscription(sub.toJSON());
-    setDevice(result.ok ? "on" : "off");
-    return result.ok;
+    const existing = await reg.pushManager.getSubscription();
+    if (existing && fresh) await existing.unsubscribe();
+    const sub = (!fresh && existing) || (await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: base64ToBytes(key) }));
+    const { ok } = await savePushSubscription(sub.toJSON());
+    setDevice(ok ? "on" : "off");
+    return ok;
   }
 
   function toggle(name: keyof typeof prefs) {
@@ -63,6 +77,16 @@ export function NotificationSettings({ notifyNotes, notifyNewRecipes }: { notify
   const hint =
     device === "unsupported" ? t.profile.pushUnsupported : device === "ios-install" ? t.profile.pushIosHint : device === "denied" ? t.profile.pushDenied : "";
   const usable = device === "on" || device === "off";
+  const resultText =
+    result?.status === "sent"
+      ? p(t.profile.pushSent, result.delivered)
+      : result?.status === "no-device"
+        ? t.profile.pushNoDevice
+        : result?.status === "failed"
+          ? f(t.profile.pushFailed, { code: result.code ?? "?" })
+          : result?.status === "not-configured"
+            ? t.profile.pushNotConfigured
+            : "";
 
   return (
     <section className="card space-y-4 p-5 sm:p-6">
@@ -75,30 +99,43 @@ export function NotificationSettings({ notifyNotes, notifyNewRecipes }: { notify
       </div>
 
       {usable && (
-        <div className="flex flex-wrap items-center gap-3">
-          {device === "on" ? (
-            <>
-              <span className="text-sm text-moss-600">{t.profile.pushEnabled}</span>
-              <button
-                type="button"
-                className="btn-secondary min-h-11 sm:min-h-0"
-                disabled={pending}
-                onClick={() =>
-                  startTransition(async () => {
-                    const { delivered } = await sendTestPush();
-                    setMessage(delivered ? "✓" : t.common.error);
-                  })
-                }
-              >
-                {t.profile.pushTest}
+        <div className="space-y-3">
+          <div className="flex flex-wrap items-center gap-2">
+            {device === "on" ? (
+              <>
+                <span className="text-sm text-moss-600">{t.profile.pushEnabled}</span>
+                <button
+                  type="button"
+                  className="btn-secondary min-h-11 sm:min-h-0"
+                  disabled={pending}
+                  onClick={() => startTransition(async () => setResult(await sendTestPush()))}
+                >
+                  {t.profile.pushTest}
+                </button>
+              </>
+            ) : (
+              <button type="button" className="btn-primary min-h-11 sm:min-h-0" disabled={pending} onClick={() => startTransition(async () => void (await enableDevice()))}>
+                {t.profile.enablePush}
               </button>
-              {message && <span className="text-sm text-muted">{message}</span>}
-            </>
-          ) : (
-            <button type="button" className="btn-primary min-h-11 sm:min-h-0" disabled={pending} onClick={() => startTransition(async () => void (await enableDevice()))}>
-              {t.profile.enablePush}
+            )}
+            <button
+              type="button"
+              className="min-h-11 rounded-lg px-3 text-sm text-muted underline-offset-2 hover:underline"
+              disabled={pending}
+              onClick={() =>
+                startTransition(async () => {
+                  setResult(null);
+                  await enableDevice(true);
+                })
+              }
+            >
+              ↻ {t.profile.pushReset}
             </button>
+          </div>
+          {resultText && (
+            <p className={`rounded-xl px-3 py-2 text-sm ${result?.status === "sent" ? "bg-mint-100 text-forest-800" : "bg-red-50 text-red-800"}`}>{resultText}</p>
           )}
+          {result?.status === "sent" && <p className="text-xs text-muted">{t.profile.pushHelp}</p>}
         </div>
       )}
     </section>
@@ -120,11 +157,7 @@ function Toggle(props: { label: string; hint: string; on: boolean; disabled?: bo
         <span className="block text-xs text-muted">{props.hint}</span>
       </span>
       <span className={`relative h-7 w-12 shrink-0 rounded-full transition-colors ${props.on ? "bg-forest-700" : "bg-sage-200"}`}>
-        <motion.span
-          className="absolute top-1 size-5 rounded-full bg-cream shadow-soft"
-          animate={{ left: props.on ? 24 : 4 }}
-          transition={spring}
-        />
+        <motion.span className="absolute top-1 size-5 rounded-full bg-cream shadow-soft" animate={{ left: props.on ? 24 : 4 }} transition={spring} />
       </span>
     </button>
   );

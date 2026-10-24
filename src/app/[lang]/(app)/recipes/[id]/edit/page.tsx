@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { Loading } from "@/components/loading";
 import { RecipeForm } from "@/components/recipe-form";
-import { getMyCookbooks, getRecipe } from "@/lib/data";
+import { getMyCookbooks, getRecipe, listTags } from "@/lib/data";
 import { getI18n } from "@/i18n/server";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -21,7 +21,7 @@ export default function EditRecipePage({ params }: PageProps<"/[lang]/recipes/[i
 
 async function EditRecipe({ params }: Pick<PageProps<"/[lang]/recipes/[id]/edit">, "params">) {
   const { id } = await params;
-  const [recipe, mine] = await Promise.all([getRecipe(id), getMyCookbooks()]);
+  const [recipe, mine, tags] = await Promise.all([getRecipe(id), getMyCookbooks(), listTags()]);
   if (!recipe?.canEdit) notFound();
 
   const cookbooks = mine.filter((b) => b.family_id === recipe.family_id);
@@ -33,6 +33,7 @@ async function EditRecipe({ params }: Pick<PageProps<"/[lang]/recipes/[id]/edit"
       cookbooks={cookbooks}
       initialCollectionIds={inCollections}
       recipe={recipe}
+      tagSuggestions={tags}
     />
   );
 }

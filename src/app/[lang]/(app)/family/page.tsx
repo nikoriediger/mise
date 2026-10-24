@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
+import Link from "next/link";
 import { Avatar } from "@/components/avatar";
 import { InvitePanel, RemoveMemberButton } from "@/components/family-controls";
 import { Loading } from "@/components/loading";
@@ -37,14 +38,16 @@ async function Family() {
         <ul className="card divide-y divide-line">
           {members.map((m) => (
             <li key={m.user_id} className="flex items-center gap-3 px-4 py-3">
+              <Link href={`/people/${m.user_id}`} className="mr-auto flex min-w-0 items-center gap-3 rounded-xl hover:bg-sage-50">
               <Avatar url={m.avatar_url} name={m.display_name ?? ""} size="md" />
-              <span className="mr-auto min-w-0">
+              <span className="min-w-0">
                 <span className="block truncate font-medium text-forest-900">
                   {m.display_name || "—"}
                   {m.user_id === user.id && <span className="font-normal text-muted"> ({t.family.you})</span>}
                 </span>
                 {m.bio && <span className="block truncate text-sm text-muted">{m.bio}</span>}
               </span>
+              </Link>
               <span className="text-sm text-muted">{m.role === "owner" ? t.family.owner : t.family.member}</span>
               {isOwner && m.user_id !== user.id && <RemoveMemberButton userId={m.user_id} />}
             </li>

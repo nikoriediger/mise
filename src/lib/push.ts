@@ -32,14 +32,17 @@ function setup() {
   configured = true;
 }
 
+export type PushResult = { delivered: number; failures: { status: number | null; message: string }[] };
+
 /**
  * Sends a notification to the given subscriptions. Subscriptions that no longer
- * exist (the device unsubscribed) are removed. Returns the number delivered.
+ * exist (the device unsubscribed) are removed.
  */
-export async function sendPush(db: SupabaseClient, subscriptions: Subscription[], payload: PushPayload) {
-  if (!pushConfigured() || subscriptions.length === 0) return 0;
+export async function sendPushDetailed(db: SupabaseClient, subscriptions: Subscription[], payload: PushPayload): Promise<PushResult> {
+  if (!pushConfigured() || subscriptions.length === 0) return { delivered: 0, failures: [] };
   setup();
   let delivered = 0;
+  const failures: PushResult["failures"] = [];
   const gone: string[] = [];
   await Promise.all(
     subscriptions.map(async (s) => {
@@ -50,14 +53,21 @@ export async function sendPush(db: SupabaseClient, subscriptions: Subscription[]
         });
         delivered++;
       } catch (error) {
-        const status = (error as { statusCode?: number }).statusCode;
+        const e = error as { statusCode?: number; body?: string; message?: string };
+        const status = e.statusCode ?? null;
         if (status === 404 || status === 410) gone.push(s.id);
-        else console.error("Push failed", status, (error as Error).message);
+        failures.push({ status, message: (e.body || e.message || "").slice(0, 300) });
+        console.error("Push failed", status, new URL(s.endpoint).host, e.body || e.message);
       }
     }),
   );
   if (gone.length) await db.from("push_subscriptions").delete().in("id", gone);
-  return delivered;
+  return { delivered, failures };
+}
+
+/** Like sendPushDetailed, returns only the number of delivered notifications. */
+export async function sendPush(db: SupabaseClient, subscriptions: Subscription[], payload: PushPayload) {
+  return (await sendPushDetailed(db, subscriptions, payload)).delivered;
 }
 
 /** The UI language a person chose (stored in their auth profile), for notification texts. */

@@ -78,7 +78,6 @@
     "steps": "Zubereitung",
     "step": "Schritt {n}",
     "notes": "Notizen",
-    "category": "Kategorie",
     "tags": "Schlagwörter",
     "images": "Fotos",
     "sources": "Originalrezept",
@@ -98,7 +97,10 @@
     },
     "readOnly": "nur lesen",
     "removeFromCookbook": "Aus diesem Kochbuch entfernen",
-    "actions": "Weitere Aktionen"
+    "actions": "Weitere Aktionen",
+    "categories": "Kategorien",
+    "diet": "Ernährung",
+    "uncategorized": "Ohne Kategorie"
   },
   "form": {
     "newTitle": "Neues Rezept",
@@ -120,10 +122,8 @@
     "moveDown": "Nach unten",
     "stepPlaceholder": "Beschreibe diesen Schritt…",
     "notes": "Notizen",
-    "category": "Kategorie",
-    "categoryPlaceholder": "z. B. Kuchen",
     "tags": "Schlagwörter",
-    "tagsHint": "Durch Kommas getrennt",
+    "tagsHint": "Eigene Stichworte, z. B. Weihnachten oder Omas Klassiker",
     "photos": "Fotos vom Gericht",
     "addPhotos": "Fotos hinzufügen",
     "sources": "Originalrezept (Scans)",
@@ -135,7 +135,14 @@
     "moveToSources": "Zum Originalrezept verschieben",
     "titleRequired": "Bitte gib einen Titel ein.",
     "uploadFailed": "Einige Bilder konnten nicht hochgeladen werden.",
-    "duplicateHint": "Ein Rezept mit diesem Namen gibt es schon:"
+    "duplicateHint": "Ein Rezept mit diesem Namen gibt es schon:",
+    "categories": "Kategorien",
+    "categoriesHint": "Mehrere möglich",
+    "diet": "Ernährung",
+    "tagPlaceholder": "Schlagwort eingeben…",
+    "addTag": "Hinzufügen",
+    "removeTag": "{tag} entfernen",
+    "tagSuggestions": "Schon in der Familie verwendet"
   },
   "cookbooks": {
     "title": "Kochbücher",
@@ -268,7 +275,16 @@
     "pushUnsupported": "Dieses Gerät oder dieser Browser unterstützt keine Benachrichtigungen.",
     "pushIosHint": "iPhone: Installiere die App zuerst über „Teilen → Zum Home-Bildschirm“ und öffne sie dann von dort.",
     "pushDenied": "Benachrichtigungen sind blockiert. Erlaube sie in den Einstellungen deines Browsers.",
-    "pushTest": "Test senden"
+    "pushTest": "Test senden",
+    "pushNoDevice": "Dieses Gerät ist auf dem Server nicht registriert. Tippe auf „Neu einrichten“.",
+    "pushSent": {
+      "one": "An {n} Gerät gesendet ✓ – kommt nichts an, siehe Hinweis unten.",
+      "other": "An {n} Geräte gesendet ✓ – kommt nichts an, siehe Hinweis unten."
+    },
+    "pushFailed": "Der Push-Dienst hat abgelehnt (Fehler {code}). Tippe auf „Neu einrichten“.",
+    "pushNotConfigured": "Benachrichtigungen sind auf dem Server noch nicht eingerichtet.",
+    "pushReset": "Auf diesem Gerät neu einrichten",
+    "pushHelp": "Nichts angekommen? Android: Einstellungen → Apps → Chrome → Benachrichtigungen erlauben. PC/Mac: Benachrichtigungen für den Browser im System erlauben und „Nicht stören“ ausschalten. iPhone: App über den Home-Bildschirm öffnen."
   },
   "push": {
     "noteTitle": "💬 Neue Notiz zu „{recipe}“",
@@ -393,5 +409,45 @@
       "en": "Englischen",
       "it": "Italienischen"
     }
+  },
+  "people": {
+    "cooked": {
+      "one": "hat schon {n}× mit {app} gekocht",
+      "other": "hat schon {n}× mit {app} gekocht"
+    },
+    "cookedNone": "hat mit {app} noch nicht gekocht",
+    "since": "dabei seit {date}",
+    "recipes": "Rezepte von {name}",
+    "myRecipes": "Meine Rezepte",
+    "cookbooks": "Kochbücher von {name}",
+    "myCookbooks": "Meine Kochbücher",
+    "recentCooking": "Zuletzt gekocht",
+    "noRecipes": "Noch keine eigenen Rezepte.",
+    "edit": "Profil bearbeiten",
+    "view": "Profil von {name} ansehen",
+    "notFound": "Dieses Profil gibt es nicht oder es gehört nicht zu deiner Familie."
+  },
+  "categories": {
+    "breakfast": "Frühstück",
+    "starters": "Vorspeisen & Snacks",
+    "salads": "Salate",
+    "soups": "Suppen & Eintöpfe",
+    "mains": "Hauptgerichte",
+    "pasta": "Pasta & Reis",
+    "sides": "Beilagen",
+    "bread": "Brot & Brötchen",
+    "cakes": "Kuchen & Torten",
+    "cookies": "Plätzchen & Gebäck",
+    "desserts": "Desserts",
+    "sauces": "Saucen, Dips & Eingemachtes",
+    "drinks": "Getränke"
+  },
+  "diet": {
+    "meat": "mit Fleisch",
+    "fish": "mit Fisch",
+    "vegetarian": "Vegetarisch",
+    "vegan": "Vegan",
+    "gluten_free": "Glutenfrei",
+    "lactose_free": "Laktosefrei"
   }
 }

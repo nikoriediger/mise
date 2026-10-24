@@ -3,7 +3,7 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { useState, useTransition } from "react";
 import { addNote, deleteNote, updateNote } from "@/app/actions/notes";
-import { Avatar } from "@/components/avatar";
+import { PersonLink } from "@/components/person-link";
 import { ConfirmDialog } from "@/components/dialog";
 import { spring } from "@/components/motion";
 import type { RecipeNote } from "@/lib/data";
@@ -83,8 +83,7 @@ function NoteCard({ note }: { note: RecipeNote }) {
   return (
     <div className="card p-4">
       <div className="mb-1 flex flex-wrap items-center gap-2 text-sm">
-        <Avatar url={note.author_avatar} name={note.author_name} size="sm" />
-        <span className="font-medium text-forest-900">{note.author_name || "…"}</span>
+        <PersonLink userId={note.author_id} name={note.author_name} avatarUrl={note.author_avatar} className="font-medium text-forest-900" />
         <span className="text-muted">
           · {date(note.created_at)}
           {note.edited && ` · ${t.notes.edited}`}

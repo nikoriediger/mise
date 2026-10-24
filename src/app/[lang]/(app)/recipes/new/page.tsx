@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import { Loading } from "@/components/loading";
 import { RecipeForm } from "@/components/recipe-form";
-import { getMyCookbooks, getPrimaryFamily, listRecipeTitles } from "@/lib/data";
+import { getMyCookbooks, getPrimaryFamily, listRecipeTitles, listTags } from "@/lib/data";
 import { getI18n } from "@/i18n/server";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -19,11 +19,12 @@ export default function NewRecipePage({ searchParams }: PageProps<"/[lang]/recip
 }
 
 async function NewRecipe({ searchParams }: Pick<PageProps<"/[lang]/recipes/new">, "searchParams">) {
-  const [{ cookbook: requested }, family, mine, existing] = await Promise.all([
+  const [{ cookbook: requested }, family, mine, existing, tags] = await Promise.all([
     searchParams,
     getPrimaryFamily(),
     getMyCookbooks(),
     listRecipeTitles(),
+    listTags(),
   ]);
   const cookbooks = mine.filter((b) => b.family_id === family.family_id);
   // Opened from a collection: pre-select it
@@ -39,6 +40,7 @@ async function NewRecipe({ searchParams }: Pick<PageProps<"/[lang]/recipes/new">
       cookbooks={cookbooks}
       initialCollectionIds={preselected}
       existing={existing}
+      tagSuggestions={tags}
     />
   );
 }

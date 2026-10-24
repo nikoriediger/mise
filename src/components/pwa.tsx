@@ -7,7 +7,11 @@ import { useI18n } from "@/i18n/client";
 /** Registers the service worker (push notifications + offline copies). */
 export function ServiceWorkerRegister() {
   useEffect(() => {
-    if ("serviceWorker" in navigator) navigator.serviceWorker.register("/sw.js").catch(() => {});
+    if (!("serviceWorker" in navigator)) return;
+    navigator.serviceWorker
+      .register("/sw.js", { updateViaCache: "none" })
+      .then((reg) => reg.update())
+      .catch(() => {});
   }, []);
   return null;
 }

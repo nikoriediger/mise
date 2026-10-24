@@ -160,7 +160,7 @@ export async function listRecipes(cookbookId?: string): Promise<RecipeListItem[]
   const supabase = await createClient();
   let query = supabase
     .from("recipes")
-    .select("id, title, category, tags, prep_minutes, cook_minutes, owner_id, family_id, ingredients, language, recipe_images(storage_path, role, is_cover, sort_order)")
+    .select("id, title, categories, diet, tags, prep_minutes, cook_minutes, owner_id, family_id, ingredients, language, recipe_images(storage_path, role, is_cover, sort_order)")
     .order("title");
 
   if (cookbookId) {
@@ -185,7 +185,8 @@ export async function listRecipes(cookbookId?: string): Promise<RecipeListItem[]
   return data.map((recipe) => ({
     id: recipe.id,
     title: recipe.title,
-    category: recipe.category,
+    categories: recipe.categories,
+    diet: recipe.diet,
     tags: recipe.tags,
     prep_minutes: recipe.prep_minutes,
     cook_minutes: recipe.cook_minutes,
@@ -210,6 +211,22 @@ export async function listRecipeTitles(): Promise<{ id: string; title: string; o
   const { data, error } = await supabase.from("recipes").select("id, title, owner_id, family_id");
   if (error) throw error;
   return data.map((r) => ({ id: r.id, title: r.title, owner_name: ownerName(r.family_id, r.owner_id) }));
+}
+
+/** All tags used in the user's families, most used first (spellings merged case-insensitively). */
+export async function listTags(): Promise<string[]> {
+  await getLibrary();
+  const supabase = await createClient();
+  const { data, error } = await supabase.from("recipes").select("tags");
+  if (error) throw error;
+  const counts = new Map<string, { tag: string; n: number }>();
+  for (const tag of data.flatMap((r) => r.tags ?? [])) {
+    const key = tag.toLocaleLowerCase();
+    const entry = counts.get(key);
+    if (entry) entry.n++;
+    else counts.set(key, { tag, n: 1 });
+  }
+  return [...counts.values()].sort((a, b) => b.n - a.n || a.tag.localeCompare(b.tag)).map((e) => e.tag);
 }
 
 export async function getRecipe(id: string): Promise<RecipeWithImages | null> {
@@ -257,8 +274,67 @@ export async function getMyProfile(): Promise<Profile> {
   return { ...profile, display_name: profile.display_name ?? "", avatar_url: urls.get(profile.avatar_path ?? "") ?? null };
 }
 
+export type PersonProfile = {
+  user_id: string;
+  display_name: string;
+  bio: string;
+  avatar_url: string | null;
+  role: "owner" | "member";
+  joined_at: string;
+  is_me: boolean;
+  recipe_count: number;
+  cook_count: number;
+  cookbooks: Cookbook[];
+  recipes: RecipeListItem[];
+  recent_cooking: { id: string; cooked_on: string; rating: number | null; recipe_id: string; recipe_title: string }[];
+};
+
+/** Public profile of a family member (null if the user doesn't share a family with them). */
+export async function getPersonProfile(userId: string): Promise<PersonProfile | null> {
+  if (!isUuid(userId)) return null;
+  const { user, cookbooks, avatarOf } = await getLibrary();
+  const supabase = await createClient();
+  const [{ data: profile }, { data: membership }, { count: cookCount }, { data: recent }] = await Promise.all([
+    supabase.from("profiles").select("user_id, display_name, bio").eq("user_id", userId).maybeSingle(),
+    supabase.from("family_members").select("role, joined_at, display_name").eq("user_id", userId).order("joined_at").limit(1).maybeSingle(),
+    supabase.from("cook_log").select("id", { count: "exact", head: true }).eq("user_id", userId),
+    supabase
+      .from("cook_log")
+      .select("id, cooked_on, rating, recipe_id, recipes(title)")
+      .eq("user_id", userId)
+      .order("cooked_on", { ascending: false })
+      .order("created_at", { ascending: false })
+      .limit(5),
+  ]);
+  // RLS only returns rows for people in the same family
+  if (!profile && !membership) return null;
+
+  const recipes = (await listRecipes()).filter((r) => r.owner_id === userId);
+  return {
+    user_id: userId,
+    display_name: profile?.display_name || membership?.display_name || "",
+    bio: profile?.bio ?? "",
+    avatar_url: avatarOf(userId),
+    role: membership?.role ?? "member",
+    joined_at: membership?.joined_at ?? "",
+    is_me: userId === user.id,
+    recipe_count: recipes.length,
+    cook_count: cookCount ?? 0,
+    cookbooks: cookbooks.filter((b) => b.owner_id === userId),
+    recipes,
+    recent_cooking: (recent ?? []).map((e) => ({
+      id: e.id,
+      cooked_on: e.cooked_on,
+      rating: e.rating,
+      recipe_id: e.recipe_id,
+      recipe_title: (e.recipes as unknown as { title: string } | null)?.title ?? "",
+    })),
+  };
+}
+
 export type RecipeNote = {
   id: string;
+  author_id: string;
   body: string;
   author_name: string;
   author_avatar: string | null;
@@ -281,6 +357,7 @@ export async function getRecipeNotes(recipe: Pick<RecipeWithImages, "id" | "fami
   if (error) throw error;
   return data.map((n) => ({
     id: n.id,
+    author_id: n.author_id,
     body: n.body,
     author_name: ownerName(recipe.family_id, n.author_id),
     author_avatar: avatarOf(n.author_id),
@@ -413,6 +490,7 @@ export async function listMealPlan(from: string, to: string): Promise<PlannedMea
 
 export type CookLogEntry = {
   id: string;
+  user_id: string;
   cooked_on: string;
   rating: number | null;
   comment: string;
@@ -436,6 +514,7 @@ export async function getCookLog(recipe: Pick<RecipeWithImages, "id" | "family_i
   const urls = await signUrls(data.map((e) => e.photo_path).filter((p): p is string => Boolean(p)));
   return data.map((e) => ({
     id: e.id,
+    user_id: e.user_id,
     cooked_on: e.cooked_on,
     rating: e.rating,
     comment: e.comment,

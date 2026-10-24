@@ -5,6 +5,7 @@ import { Suspense } from "react";
 import { Loading } from "@/components/loading";
 import { PrintNowButton } from "@/components/recipe-actions";
 import { getCookbook, getCookbookRecipesFull } from "@/lib/data";
+import { categoryEmoji, dietEmoji } from "@/lib/taxonomy";
 import { getI18n } from "@/i18n/server";
 
 export default function CookbookPrintPage({ params }: PageProps<"/[lang]/cookbooks/[id]/print">) {
@@ -55,7 +56,7 @@ async function Book({ params }: Pick<PageProps<"/[lang]/cookbooks/[id]/print">, 
       {recipes.map((r, i) => (
         <article key={r.id} id={`recipe-${r.id}`} className="card mt-6 space-y-5 p-8 print:mt-0 print:break-before-page print:border-0 print:p-0 print:shadow-none">
           <header>
-            <p className="font-serif text-sm text-moss-600">{i + 1}{r.category ? ` · ${r.category}` : ""}</p>
+            <p className="font-serif text-sm text-moss-600">{[String(i + 1), ...r.categories.map((c) => `${categoryEmoji(c)} ${t.categories[c]}`), ...r.diet.map((d) => `${dietEmoji(d)} ${t.diet[d]}`)].join(" · ")}</p>
             <h2 className="font-serif text-4xl font-semibold text-forest-900">{r.title}</h2>
             {r.origin && <p className="mt-1 font-serif italic text-moss-600">📜 {r.origin}</p>}
             <p className="mt-2 text-sm text-muted">

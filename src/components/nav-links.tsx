@@ -68,7 +68,7 @@ function DesktopLinks({ pathname }: { pathname: string | null }) {
 }
 
 /** Bottom tab bar for phones: Recipes · Cookbooks · ＋ · Family · More. */
-type NavProfile = { name: string; avatarUrl: string | null };
+type NavProfile = { id: string; name: string; avatarUrl: string | null };
 
 export function BottomNav({ profile }: { profile?: NavProfile }) {
   return <WithPathname>{(pathname) => <BottomTabs pathname={pathname} profile={profile} />}</WithPathname>;
@@ -129,7 +129,7 @@ function BottomTabs({ pathname, profile }: { pathname: string | null; profile?: 
         <div className="space-y-6">
           {profile && (
             <Link
-              href="/profile"
+              href={`/people/${profile.id}`}
               onClick={() => setMoreOpen(false)}
               className="flex min-h-16 items-center gap-3 rounded-2xl border border-line bg-cream px-4 py-3 transition-colors hover:bg-sage-50"
             >

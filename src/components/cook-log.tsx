@@ -4,6 +4,7 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { useRef, useState, useTransition } from "react";
 import { deleteCookLog, logCooking } from "@/app/actions/cooking";
+import Link from "next/link";
 import { Avatar } from "@/components/avatar";
 import { ConfirmDialog, Dialog } from "@/components/dialog";
 import { spring } from "@/components/motion";
@@ -102,10 +103,12 @@ export function CookLog({ recipeId, familyId, entries }: { recipeId: string; fam
           <AnimatePresence initial={false}>
             {entries.map((e) => (
               <motion.li key={e.id} layout initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, x: -20 }} className="card flex gap-3 p-4">
-                <Avatar url={e.author_avatar} name={e.author_name} size="md" />
+                <Link href={`/people/${e.user_id}`} className="shrink-0 rounded-full">
+                  <Avatar url={e.author_avatar} name={e.author_name} size="md" />
+                </Link>
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-x-2 text-sm">
-                    <span className="font-medium text-forest-900">{e.author_name || "…"}</span>
+                    <Link href={`/people/${e.user_id}`} className="font-medium text-forest-900 underline-offset-2 hover:underline">{e.author_name || "…"}</Link>
                     <span className="text-muted">{date(e.cooked_on)}</span>
                     {e.rating && <Stars value={e.rating} size="text-sm" />}
                   </div>

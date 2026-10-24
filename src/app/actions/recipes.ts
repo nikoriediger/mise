@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser, getFamilyMemberships, getMyCookbooks, getRecipe, isUuid } from "@/lib/data";
+import { cleanCategories, cleanDiet, cleanTags } from "@/lib/taxonomy";
 import { IMAGE_BUCKET, type ImageRole, type RecipeDraft } from "@/lib/types";
 import { isLocale } from "@/i18n/config";
 import { getActionI18n } from "@/i18n/server";
@@ -206,7 +207,8 @@ export async function copyRecipe(sourceId: string): Promise<ActionResult> {
     ingredients: source.ingredients,
     steps: source.steps,
     notes: source.notes,
-    category: source.category,
+    categories: source.categories,
+    diet: source.diet,
     tags: source.tags,
     language: source.language,
     origin: source.origin,
@@ -263,8 +265,9 @@ function cleanDraft(draft: RecipeDraft): RecipeDraft {
     ingredients: lines(draft.ingredients),
     steps: lines(draft.steps),
     notes: draft.notes.trim(),
-    category: draft.category.trim(),
-    tags: [...new Set(lines(draft.tags))],
+    categories: cleanCategories(draft.categories),
+    diet: cleanDiet(draft.diet),
+    tags: cleanTags(draft.tags).map((tag) => tag.slice(0, 40)).slice(0, 30),
     language: isLocale(draft.language) ? draft.language : null,
     origin: (draft.origin ?? "").trim().slice(0, 200),
     story: (draft.story ?? "").trim().slice(0, 5000),

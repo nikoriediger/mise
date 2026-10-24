@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { EditCookbookButton } from "@/components/cookbook-controls";
 import { EmptyState } from "@/components/empty-state";
+import { PersonLink } from "@/components/person-link";
 import { Loading } from "@/components/loading";
 import { RecipeList } from "@/components/recipe-list";
 import { RecipePickerButton } from "@/components/recipe-picker-button";
@@ -38,14 +39,14 @@ async function CookbookDetail({ params }: Pick<PageProps<"/[lang]/cookbooks/[id]
         </span>
         <div className="mr-auto min-w-0">
           <h1 className="font-serif text-3xl font-semibold text-forest-900 sm:text-4xl">{cookbook.name}</h1>
-          <p className="text-sm text-muted">
-            {[
-              cookbook.is_default && (cookbook.is_mine ? t.cookbooks.mainHint : t.cookbooks.main),
-              !cookbook.is_mine && cookbook.owner_name && f(t.recipes.byOwner, { name: cookbook.owner_name }),
-              p(t.recipes.count, recipes.length),
-            ]
-              .filter(Boolean)
-              .join(" · ")}
+          <p className="flex flex-wrap items-center gap-x-1.5 text-sm text-muted">
+            {!cookbook.is_mine && (
+              <>
+                <PersonLink userId={cookbook.owner_id} name={cookbook.owner_name} avatarUrl={cookbook.owner_avatar} size="xs" label={f(t.recipes.byOwner, { name: cookbook.owner_name || "…" })} />
+                <span>·</span>
+              </>
+            )}
+            {[cookbook.is_default && (cookbook.is_mine ? t.cookbooks.mainHint : t.cookbooks.main), p(t.recipes.count, recipes.length)].filter(Boolean).join(" · ")}
           </p>
         </div>
         {recipes.length > 0 && (

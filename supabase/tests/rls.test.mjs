@@ -62,7 +62,7 @@ await db.query(`insert into public.invites (cookbook_id, created_by) values ($1,
 const tok = (await one(`select token from public.invites`)).token;
 await db.query(`insert into auth.users values ($1, $2)`, [B, JSON.stringify({ display_name: "Niko", invite_token: tok })]);
 await db.query(
-  `insert into public.recipes (cookbook_id, title, created_by) values ($1, 'Tiramisu Papa', $2), ($1, 'Tiramisu Niko', $3), ($1, 'Ohne Autor', null)`,
+  `insert into public.recipes (cookbook_id, title, created_by, category) values ($1, 'Tiramisu Papa', $2, 'Kuchen'), ($1, 'Tiramisu Niko', $3, 'Gewürzmischung'), ($1, 'Ohne Autor', null, 'Vegetarisches Hauptgericht')`,
   [fam, A, B],
 );
 const rPapa = (await one(`select id from public.recipes where title = 'Tiramisu Papa'`)).id;
@@ -247,6 +247,26 @@ await as(B, async () => {
 });
 await as("00000000-0000-0000-0000-00000000000f", async () => {
   ok((await rows(`select recipe_id from public.recipe_translations`)).length === 0, "outsiders see no translations");
+});
+
+// ---------------------------------------------------------------------------
+// Categories and diet (migrated from free text)
+// ---------------------------------------------------------------------------
+const cat = async (title) => one(`select categories, diet, tags from public.recipes where title like $1`, [title]);
+const papaCat = await cat("Tiramisu Papa%");
+ok(JSON.stringify(papaCat.categories) === '["cakes"]', "old category 'Kuchen' became cakes");
+const nikoCat = await cat("Tiramisu Niko");
+ok(nikoCat.categories.length === 0 && nikoCat.tags.includes("Gewürzmischung"), "unmatched old category became a tag");
+const vegCat = await cat("Ohne Autor");
+ok(vegCat.categories.includes("mains") && vegCat.diet.includes("vegetarian"), "'Vegetarisches Hauptgericht' became mains + vegetarian");
+await as(A, async () => {
+  ok(Boolean((await tryQ(`update public.recipes set categories = '{pizza}' where id = $1`, [rPapa])).error), "unknown categories are rejected");
+  ok(!(await tryQ(`update public.recipes set categories = '{cakes,desserts}', diet = '{vegetarian}' where id = $1`, [rPapa])).error, "several categories and diet flags can be set");
+  await db.query(`select public.register_push_device('https://push.example/shared', 'k', 'a')`);
+});
+await as(B, async () => {
+  ok(!(await tryQ(`select public.register_push_device('https://push.example/shared', 'k2', 'a2')`)).error, "a device registered by another account can be taken over");
+  ok((await rows(`select id from public.push_subscriptions where endpoint = 'https://push.example/shared'`)).length === 1, "the device now belongs to the signed-in account");
 });
 
 // ---------------------------------------------------------------------------

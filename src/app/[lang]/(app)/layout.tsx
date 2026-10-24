@@ -49,7 +49,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 async function ProfileLink({ label }: { label: string }) {
   const profile = await getMyProfile();
   return (
-    <Link href="/profile" aria-label={label} title={label} className="shrink-0 rounded-full ring-2 ring-cream transition-transform hover:scale-105">
+    <Link href={`/people/${profile.user_id}`} aria-label={label} title={label} className="shrink-0 rounded-full ring-2 ring-cream transition-transform hover:scale-105">
       <Avatar url={profile.avatar_url} name={profile.display_name} size="md" />
     </Link>
   );
@@ -57,5 +57,5 @@ async function ProfileLink({ label }: { label: string }) {
 
 async function BottomNavWithProfile() {
   const profile = await getMyProfile();
-  return <BottomNav profile={{ name: profile.display_name, avatarUrl: profile.avatar_url }} />;
+  return <BottomNav profile={{ id: profile.user_id, name: profile.display_name, avatarUrl: profile.avatar_url }} />;
 }

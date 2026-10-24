@@ -1,4 +1,5 @@
 import type { Locale } from "@/i18n/config";
+import type { CategoryKey, DietKey } from "@/lib/taxonomy";
 
 export type ImageRole = "gallery" | "source" | "memory";
 
@@ -13,7 +14,8 @@ export type Recipe = {
   ingredients: string[];
   steps: string[];
   notes: string | null;
-  category: string | null;
+  categories: CategoryKey[];
+  diet: DietKey[];
   tags: string[];
   /** Language of the recipe's content (de/en/it), if known. */
   language: Locale | null;
@@ -65,7 +67,7 @@ export type RecipeWithImages = Recipe & {
 
 export type RecipeListItem = Pick<
   Recipe,
-  "id" | "title" | "category" | "tags" | "prep_minutes" | "cook_minutes" | "owner_id" | "family_id" | "ingredients" | "language"
+  "id" | "title" | "categories" | "diet" | "tags" | "prep_minutes" | "cook_minutes" | "owner_id" | "family_id" | "ingredients" | "language"
 > & {
   owner_name: string;
   owner_avatar: string | null;
@@ -87,7 +89,8 @@ export type RecipeDraft = {
   ingredients: string[];
   steps: string[];
   notes: string;
-  category: string;
+  categories: CategoryKey[];
+  diet: DietKey[];
   tags: string[];
   language: Locale | null;
   origin: string;
