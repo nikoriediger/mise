@@ -14,7 +14,8 @@
 
 - Recipes with ingredients, steps, notes, servings, times, category and tags
 - Photos of the dish plus scans of the original recipe (card, cookbook page)
-- Shared cookbooks: invite family or friends with a one-time link
+- Families: invite family or friends with a one-time link
+- Everyone has their own cookbooks; all family members can read and copy them, only the owner can edit
 - Open sign-up or invite-only mode
 - English and German UI
 
@@ -36,14 +37,14 @@
 
 ### Invite-only mode
 
-By default anyone can sign up and gets their own cookbook. To allow sign-up
+By default anyone can sign up and starts their own family. To allow sign-up
 only via invite links (the first account can always be created), run:
 
 ```sql
 update public.app_config set signup_mode = 'invite';
 ```
 
-Invite links are created on the **Cookbook** page.
+Invite links are created on the **Family** page.
 
 ## License
 

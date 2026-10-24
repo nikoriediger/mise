@@ -2,20 +2,30 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import { Loading } from "@/components/loading";
 import { RecipeForm } from "@/components/recipe-form";
-import { getPrimaryCookbook } from "@/lib/data";
+import { getCookbooks, listRecipeTitles } from "@/lib/data";
 import { t } from "@/i18n";
 
 export const metadata: Metadata = { title: t.form.newTitle };
 
-export default function NewRecipePage() {
+export default function NewRecipePage({ searchParams }: PageProps<"/recipes/new">) {
   return (
     <Suspense fallback={<Loading />}>
-      <NewRecipe />
+      <NewRecipe searchParams={searchParams} />
     </Suspense>
   );
 }
 
-async function NewRecipe() {
-  const cookbook = await getPrimaryCookbook();
-  return <RecipeForm cookbookId={cookbook.cookbook_id} />;
+async function NewRecipe({ searchParams }: Pick<PageProps<"/recipes/new">, "searchParams">) {
+  const [{ cookbook: requested }, cookbooks, titles] = await Promise.all([searchParams, getCookbooks(), listRecipeTitles()]);
+  const mine = cookbooks.filter((b) => b.is_mine);
+  const initial = mine.find((b) => b.id === requested) ?? mine[0];
+  if (!initial) throw new Error("No own cookbook");
+
+  const byId = new Map(cookbooks.map((b) => [b.id, b]));
+  const existing = titles.map((r) => {
+    const book = byId.get(r.cookbook_id);
+    return { id: r.id, title: r.title, cookbook: book ? `${book.emoji} ${book.name}` : "" };
+  });
+
+  return <RecipeForm cookbooks={mine} initialCookbookId={initial.id} existing={existing} />;
 }

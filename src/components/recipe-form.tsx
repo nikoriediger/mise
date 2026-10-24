@@ -9,7 +9,7 @@ import { spring } from "@/components/motion";
 import { recipeFormTools } from "@/features/registry";
 import { compressImage, extensionFor } from "@/lib/image-compress";
 import { createClient } from "@/lib/supabase/client";
-import { IMAGE_BUCKET, type ImageRole, type RecipeDraft, type RecipeWithImages } from "@/lib/types";
+import { IMAGE_BUCKET, type Cookbook, type ImageRole, type RecipeDraft, type RecipeWithImages } from "@/lib/types";
 import { t } from "@/i18n";
 
 type FormImage = {
@@ -35,13 +35,21 @@ type Fields = {
 
 type Step = { key: string; text: string };
 
+type ExistingRecipe = { id: string; title: string; cookbook: string };
+
 type Props = {
-  cookbookId: string;
+  /** The user's own cookbooks the recipe can be saved in. */
+  cookbooks: Cookbook[];
+  initialCookbookId: string;
   recipe?: RecipeWithImages;
+  /** Existing recipes, for the duplicate hint (new recipes only). */
+  existing?: ExistingRecipe[];
 };
 
-export function RecipeForm({ cookbookId, recipe }: Props) {
+export function RecipeForm({ cookbooks, initialCookbookId, recipe, existing = [] }: Props) {
   const [recipeId] = useState(() => recipe?.id ?? crypto.randomUUID());
+  const [cookbookId, setCookbookId] = useState(initialCookbookId);
+  const familyId = cookbooks.find((b) => b.id === cookbookId)?.family_id ?? "";
   const [fields, setFields] = useState<Fields>(() => toFields(recipe));
   const [steps, setSteps] = useState<Step[]>(() => toSteps(recipe?.steps));
   const [images, setImages] = useState<FormImage[]>(() =>
@@ -112,7 +120,7 @@ export function RecipeForm({ cookbookId, recipe }: Props) {
         if (!img.file) return img;
         try {
           const blob = await compressImage(img.file);
-          const path = `${cookbookId}/${recipeId}/${crypto.randomUUID()}.${extensionFor(blob.type)}`;
+          const path = `${familyId}/${recipeId}/${crypto.randomUUID()}.${extensionFor(blob.type)}`;
           const { error } = await supabase.storage
             .from(IMAGE_BUCKET)
             .upload(path, blob, { contentType: blob.type });
@@ -144,6 +152,7 @@ export function RecipeForm({ cookbookId, recipe }: Props) {
     try {
       const result = await saveRecipe({
         id: recipeId,
+        familyId,
         cookbookId,
         isNew: !recipe,
         draft: toDraft(fields, steps),
@@ -171,7 +180,33 @@ export function RecipeForm({ cookbookId, recipe }: Props) {
         <div>
           <label className="label" htmlFor="title">{t.form.title}</label>
           <input id="title" className="input font-serif text-xl" value={fields.title} onChange={set("title")} placeholder={t.form.titlePlaceholder} required />
+          <DuplicateHint title={fields.title} existing={existing} />
         </div>
+        {cookbooks.length > 1 && (
+          <div>
+            <span className="label">{t.form.cookbook}</span>
+            <div className="flex flex-wrap gap-2">
+              {cookbooks.map((b) => (
+                <motion.button
+                  key={b.id}
+                  type="button"
+                  onClick={() => setCookbookId(b.id)}
+                  whileHover={{ scale: 1.04 }}
+                  whileTap={{ scale: 0.96 }}
+                  transition={spring}
+                  className={`relative rounded-full px-3.5 py-1.5 text-sm transition-colors ${
+                    cookbookId === b.id ? "text-cream" : "bg-sage-50 text-forest-800 ring-1 ring-line hover:bg-sage-100"
+                  }`}
+                >
+                  {cookbookId === b.id && (
+                    <motion.span layoutId="form-cookbook-pill" className="absolute inset-0 rounded-full bg-forest-700 shadow-soft" transition={spring} />
+                  )}
+                  <span className="relative">{b.emoji} {b.name}</span>
+                </motion.button>
+              ))}
+            </div>
+          </div>
+        )}
         <div className="grid grid-cols-3 gap-3">
           <NumberField id="servings" label={t.form.servings} value={fields.servings} onChange={set("servings")} />
           <NumberField id="prep_minutes" label={t.form.prepMinutes} value={fields.prep_minutes} onChange={set("prep_minutes")} />
@@ -230,6 +265,45 @@ export function RecipeForm({ cookbookId, recipe }: Props) {
       </div>
     </form>
   );
+}
+
+function DuplicateHint({ title, existing }: { title: string; existing: ExistingRecipe[] }) {
+  const q = normalize(title);
+  const matches = q.length < 3 ? [] : existing.filter((r) => {
+    const other = normalize(r.title);
+    return other === q || (q.length >= 4 && (other.includes(q) || q.includes(other)));
+  });
+
+  return (
+    <AnimatePresence>
+      {matches.length > 0 && (
+        <motion.div
+          initial={{ opacity: 0, height: 0 }}
+          animate={{ opacity: 1, height: "auto" }}
+          exit={{ opacity: 0, height: 0 }}
+          className="overflow-hidden"
+        >
+          <div className="mt-2 rounded-xl bg-matcha-300/30 px-3 py-2 text-sm text-forest-800">
+            <span className="font-medium">💡 {t.form.duplicateHint}</span>
+            <ul className="mt-1 space-y-0.5">
+              {matches.slice(0, 5).map((r) => (
+                <li key={r.id}>
+                  <Link href={`/recipes/${r.id}`} target="_blank" className="underline decoration-matcha-500 underline-offset-2 hover:text-forest-900">
+                    {r.title}
+                  </Link>
+                  {r.cookbook && <span className="text-muted"> · {r.cookbook}</span>}
+                </li>
+              ))}
+            </ul>
+          </div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+}
+
+function normalize(s: string) {
+  return s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9ß]+/g, " ").trim();
 }
 
 function StepsEditor({ steps, onChange }: { steps: Step[]; onChange: (steps: Step[]) => void }) {

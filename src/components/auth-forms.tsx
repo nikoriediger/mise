@@ -31,7 +31,7 @@ export function LoginForm() {
   );
 }
 
-export function SignupForm({ invite, cookbookName }: { invite?: string; cookbookName?: string }) {
+export function SignupForm({ invite, familyName }: { invite?: string; familyName?: string }) {
   const [state, action, pending] = useActionState(signUp, undefined);
 
   if (state?.message) {
@@ -41,9 +41,9 @@ export function SignupForm({ invite, cookbookName }: { invite?: string; cookbook
   return (
     <form action={action} className="space-y-4">
       <h2 className="font-serif text-xl font-semibold">{t.auth.signUp}</h2>
-      {cookbookName && (
+      {familyName && (
         <p className="rounded-lg bg-cream p-3 text-sm">
-          {t.auth.invitedTo} <strong>{cookbookName}</strong>
+          {t.auth.invitedTo} <strong>{familyName}</strong>
         </p>
       )}
       {invite && <input type="hidden" name="invite" value={invite} />}
@@ -53,8 +53,8 @@ export function SignupForm({ invite, cookbookName }: { invite?: string; cookbook
       </div>
       {!invite && (
         <div>
-          <label className="label" htmlFor="cookbook_name">{t.auth.cookbookName}</label>
-          <input className="input" id="cookbook_name" name="cookbook_name" placeholder={t.auth.cookbookNameDefault} />
+          <label className="label" htmlFor="family_name">{t.auth.familyName}</label>
+          <input className="input" id="family_name" name="family_name" placeholder={t.auth.familyNameDefault} />
         </div>
       )}
       <div>

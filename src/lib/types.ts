@@ -26,11 +26,28 @@ export type RecipeImage = {
   url: string;
 };
 
-export type RecipeWithImages = Recipe & { images: RecipeImage[] };
+/** A cookbook as shown in the UI, with its owner's display name. */
+export type Cookbook = {
+  id: string;
+  family_id: string;
+  owner_id: string;
+  owner_name: string;
+  name: string;
+  emoji: string;
+  is_mine: boolean;
+  recipe_count: number;
+};
+
+export type RecipeWithImages = Recipe & {
+  images: RecipeImage[];
+  cookbook: Cookbook;
+  /** True if the current user owns the recipe's cookbook. */
+  canEdit: boolean;
+};
 
 export type RecipeListItem = Pick<
   Recipe,
-  "id" | "title" | "category" | "tags" | "prep_minutes" | "cook_minutes"
+  "id" | "title" | "category" | "tags" | "prep_minutes" | "cook_minutes" | "cookbook_id"
 > & { coverUrl: string | null };
 
 /** The editable fields of a recipe, as used by the form (and form extensions). */
@@ -46,10 +63,12 @@ export type RecipeDraft = {
   tags: string[];
 };
 
-export type Membership = {
-  cookbook_id: string;
+export type FamilyMembership = {
+  family_id: string;
   role: "owner" | "member";
-  cookbook_name: string;
+  family_name: string;
 };
 
 export const IMAGE_BUCKET = "recipe-images";
+
+export const COOKBOOK_EMOJIS = ["📗", "📘", "📙", "📕", "📒", "🍰", "🥘", "🍝", "🥗", "🍲", "🥐", "🎄", "🌶️", "🍹"];

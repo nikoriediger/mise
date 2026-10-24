@@ -4,7 +4,8 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import {
   IMAGE_BUCKET,
-  type Membership,
+  type Cookbook,
+  type FamilyMembership,
   type Recipe,
   type RecipeImage,
   type RecipeListItem,
@@ -23,38 +24,75 @@ export const getCurrentUser = cache(async () => {
   return { id: data.user.id, email: data.user.email ?? "" };
 });
 
-export const getMemberships = cache(async (): Promise<Membership[]> => {
+export const getFamilyMemberships = cache(async (): Promise<FamilyMembership[]> => {
   const user = await getCurrentUser();
   const supabase = await createClient();
   const { data, error } = await supabase
-    .from("cookbook_members")
-    .select("cookbook_id, role, cookbooks(name)")
+    .from("family_members")
+    .select("family_id, role, families(name)")
     .eq("user_id", user.id)
     .order("joined_at");
   if (error) throw error;
   return data.map((m) => ({
-    cookbook_id: m.cookbook_id,
+    family_id: m.family_id,
     role: m.role,
-    cookbook_name: (m.cookbooks as unknown as { name: string } | null)?.name ?? "",
+    family_name: (m.families as unknown as { name: string } | null)?.name ?? "",
   }));
 });
 
-/** The cookbook new recipes are added to: the user's first cookbook. */
-export async function getPrimaryCookbook(): Promise<Membership> {
-  const memberships = await getMemberships();
+/** The user's (first) family. */
+export async function getPrimaryFamily(): Promise<FamilyMembership> {
+  const memberships = await getFamilyMemberships();
   if (memberships.length === 0) {
-    throw new Error("User is not a member of any cookbook");
+    throw new Error("User is not a member of any family");
   }
   return memberships[0];
 }
 
-export async function listRecipes(): Promise<RecipeListItem[]> {
+/** All cookbooks the user can see (their families' cookbooks), own ones first. */
+export const getCookbooks = cache(async (): Promise<Cookbook[]> => {
+  const user = await getCurrentUser();
+  const supabase = await createClient();
+  const [{ data: books, error }, { data: members, error: membersError }] = await Promise.all([
+    supabase.from("cookbooks").select("id, family_id, owner_id, name, emoji, created_at, recipes(count)").order("created_at"),
+    supabase.from("family_members").select("family_id, user_id, display_name"),
+  ]);
+  if (error) throw error;
+  if (membersError) throw membersError;
+
+  const names = new Map(members.map((m) => [`${m.family_id}:${m.user_id}`, m.display_name ?? ""]));
+  return books
+    .map((b) => ({
+      id: b.id,
+      family_id: b.family_id,
+      owner_id: b.owner_id,
+      owner_name: names.get(`${b.family_id}:${b.owner_id}`) ?? "",
+      name: b.name,
+      emoji: b.emoji,
+      is_mine: b.owner_id === user.id,
+      recipe_count: (b.recipes as unknown as { count: number }[])[0]?.count ?? 0,
+    }))
+    .sort((a, b) => Number(b.is_mine) - Number(a.is_mine));
+});
+
+export async function getMyCookbooks(): Promise<Cookbook[]> {
+  return (await getCookbooks()).filter((b) => b.is_mine);
+}
+
+export async function getCookbook(id: string): Promise<Cookbook | null> {
+  if (!isUuid(id)) return null;
+  return (await getCookbooks()).find((b) => b.id === id) ?? null;
+}
+
+export async function listRecipes(cookbookId?: string): Promise<RecipeListItem[]> {
   await getCurrentUser();
   const supabase = await createClient();
-  const { data, error } = await supabase
+  let query = supabase
     .from("recipes")
-    .select("id, title, category, tags, prep_minutes, cook_minutes, recipe_images(storage_path, role, is_cover, sort_order)")
+    .select("id, title, category, tags, prep_minutes, cook_minutes, cookbook_id, recipe_images(storage_path, role, is_cover, sort_order)")
     .order("title");
+  if (cookbookId) query = query.eq("cookbook_id", cookbookId);
+  const { data, error } = await query;
   if (error) throw error;
 
   const coverPaths = new Map<string, string>();
@@ -73,8 +111,18 @@ export async function listRecipes(): Promise<RecipeListItem[]> {
     tags: recipe.tags,
     prep_minutes: recipe.prep_minutes,
     cook_minutes: recipe.cook_minutes,
+    cookbook_id: recipe.cookbook_id,
     coverUrl: urls.get(coverPaths.get(recipe.id) ?? "") ?? null,
   }));
+}
+
+/** Titles of all visible recipes, for the duplicate hint on the recipe form. */
+export async function listRecipeTitles(): Promise<{ id: string; title: string; cookbook_id: string }[]> {
+  await getCurrentUser();
+  const supabase = await createClient();
+  const { data, error } = await supabase.from("recipes").select("id, title, cookbook_id");
+  if (error) throw error;
+  return data;
 }
 
 export async function getRecipe(id: string): Promise<RecipeWithImages | null> {
@@ -92,12 +140,17 @@ export async function getRecipe(id: string): Promise<RecipeWithImages | null> {
   const { recipe_images, ...recipe } = data as Recipe & {
     recipe_images: Omit<RecipeImage, "url">[];
   };
+  const cookbook = await getCookbook(recipe.cookbook_id);
+  if (!cookbook) return null;
+
   const sorted = [...recipe_images].sort((a, b) => a.sort_order - b.sort_order);
   const urls = await signUrls(sorted.map((img) => img.storage_path));
 
   return {
     ...recipe,
     images: sorted.map((img) => ({ ...img, url: urls.get(img.storage_path) ?? "" })),
+    cookbook,
+    canEdit: cookbook.is_mine,
   };
 }
 
@@ -109,23 +162,23 @@ export type Member = {
 
 export type Invite = { token: string; expires_at: string };
 
-export async function getCookbookDetails() {
-  const cookbook = await getPrimaryCookbook();
+export async function getFamilyDetails() {
+  const family = await getPrimaryFamily();
   const supabase = await createClient();
 
   const { data: members, error } = await supabase
-    .from("cookbook_members")
+    .from("family_members")
     .select("user_id, role, display_name")
-    .eq("cookbook_id", cookbook.cookbook_id)
+    .eq("family_id", family.family_id)
     .order("joined_at");
   if (error) throw error;
 
   let invites: Invite[] = [];
-  if (cookbook.role === "owner") {
+  if (family.role === "owner") {
     const { data, error: inviteError } = await supabase
       .from("invites")
       .select("token, expires_at")
-      .eq("cookbook_id", cookbook.cookbook_id)
+      .eq("family_id", family.family_id)
       .is("accepted_at", null)
       .gt("expires_at", new Date().toISOString())
       .order("created_at");
@@ -133,7 +186,7 @@ export async function getCookbookDetails() {
     invites = data;
   }
 
-  return { cookbook, members: members as Member[], invites };
+  return { family, members: members as Member[], invites };
 }
 
 async function signUrls(paths: string[]): Promise<Map<string, string>> {

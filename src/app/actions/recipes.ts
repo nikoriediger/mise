@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { getCurrentUser, getMemberships, isUuid } from "@/lib/data";
+import { getCurrentUser, getMyCookbooks, getRecipe, isUuid } from "@/lib/data";
 import { IMAGE_BUCKET, type ImageRole, type RecipeDraft } from "@/lib/types";
 import { t } from "@/i18n";
 
@@ -18,6 +18,9 @@ export type ImageState = {
 
 export type SaveRecipeInput = {
   id: string;
+  /** Family folder the images were uploaded to: <familyId>/<recipeId>/... */
+  familyId: string;
+  /** The (own) cookbook the recipe is saved in. */
   cookbookId: string;
   isNew: boolean;
   draft: RecipeDraft;
@@ -28,22 +31,22 @@ export type SaveRecipeResult = { error: string } | undefined;
 
 /**
  * Creates or updates a recipe and syncs its images. Image files are uploaded
- * by the browser beforehand to <cookbookId>/<recipeId>/..., this action only
+ * by the browser beforehand to <familyId>/<recipeId>/..., this action only
  * records them (and deletes images that were removed).
  */
 export async function saveRecipe(input: SaveRecipeInput): Promise<SaveRecipeResult> {
   const user = await getCurrentUser();
-  const memberships = await getMemberships();
-  const { id, cookbookId, isNew, images } = input;
+  const { id, familyId, cookbookId, isNew, images } = input;
 
-  if (!isUuid(id) || !memberships.some((m) => m.cookbook_id === cookbookId)) {
+  const cookbook = (await getMyCookbooks()).find((b) => b.id === cookbookId);
+  if (!isUuid(id) || !cookbook || cookbook.family_id !== familyId) {
     return { error: t.common.error };
   }
   const draft = cleanDraft(input.draft);
   if (!draft.title) {
     return { error: t.form.titleRequired };
   }
-  const prefix = `${cookbookId}/${id}/`;
+  const prefix = `${familyId}/${id}/`;
   if (images.some((img) => !img.storage_path.startsWith(prefix))) {
     return { error: t.common.error };
   }
@@ -56,11 +59,11 @@ export async function saveRecipe(input: SaveRecipeInput): Promise<SaveRecipeResu
       .insert({ id, cookbook_id: cookbookId, created_by: user.id, ...draft });
     if (error) return { error: t.common.error };
   } else {
+    // RLS only lets owners update; moving is limited to own cookbooks of the same family.
     const { data, error } = await supabase
       .from("recipes")
-      .update(draft)
+      .update({ ...draft, cookbook_id: cookbookId })
       .eq("id", id)
-      .eq("cookbook_id", cookbookId)
       .select("id");
     if (error || !data.length) return { error: t.common.error };
   }
@@ -92,7 +95,7 @@ export async function saveRecipe(input: SaveRecipeInput): Promise<SaveRecipeResu
     const { error } = await supabase.from("recipe_images").insert(
       added.map((img) => ({
         recipe_id: id,
-        cookbook_id: cookbookId,
+        family_id: familyId,
         storage_path: img.storage_path,
         role: img.role,
         sort_order: img.sort_order,
@@ -106,23 +109,67 @@ export async function saveRecipe(input: SaveRecipeInput): Promise<SaveRecipeResu
   redirect(`/recipes/${id}`);
 }
 
+/** Copies a recipe (including its images) into one of the user's own cookbooks. */
+export async function copyRecipe(sourceId: string, targetCookbookId: string): Promise<{ error: string } | undefined> {
+  const user = await getCurrentUser();
+  const source = await getRecipe(sourceId);
+  const target = (await getMyCookbooks()).find((b) => b.id === targetCookbookId);
+  if (!source || !target) return { error: t.common.error };
+
+  const supabase = await createClient();
+  const newId = crypto.randomUUID();
+  const { error } = await supabase.from("recipes").insert({
+    id: newId,
+    cookbook_id: target.id,
+    created_by: user.id,
+    title: source.title,
+    servings: source.servings,
+    prep_minutes: source.prep_minutes,
+    cook_minutes: source.cook_minutes,
+    ingredients: source.ingredients,
+    steps: source.steps,
+    notes: source.notes,
+    category: source.category,
+    tags: source.tags,
+  });
+  if (error) return { error: t.common.error };
+
+  const copies = [];
+  for (const img of source.images) {
+    const fileName = img.storage_path.split("/").pop();
+    const path = `${target.family_id}/${newId}/${fileName}`;
+    const { error: copyError } = await supabase.storage.from(IMAGE_BUCKET).copy(img.storage_path, path);
+    if (!copyError) {
+      copies.push({
+        recipe_id: newId,
+        family_id: target.family_id,
+        storage_path: path,
+        role: img.role,
+        sort_order: img.sort_order,
+        is_cover: img.is_cover,
+      });
+    }
+  }
+  if (copies.length) await supabase.from("recipe_images").insert(copies);
+
+  revalidatePath("/", "layout");
+  redirect(`/recipes/${newId}`);
+}
+
 export async function deleteRecipe(id: string) {
   await getCurrentUser();
-  if (!isUuid(id)) return;
+  const recipe = await getRecipe(id);
+  if (!recipe?.canEdit) return;
   const supabase = await createClient();
 
-  const { data: images } = await supabase
-    .from("recipe_images")
-    .select("storage_path")
-    .eq("recipe_id", id);
   const { error } = await supabase.from("recipes").delete().eq("id", id);
   if (error) throw error;
-  if (images?.length) {
-    await supabase.storage.from(IMAGE_BUCKET).remove(images.map((img) => img.storage_path));
+  if (recipe.images.length) {
+    await supabase.storage.from(IMAGE_BUCKET).remove(recipe.images.map((img) => img.storage_path));
   }
 
   revalidatePath("/", "layout");
-  redirect("/");
+  redirect(`/cookbooks/${recipe.cookbook_id}`);
 }
 
 function cleanDraft(draft: RecipeDraft): RecipeDraft {

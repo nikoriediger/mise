@@ -4,8 +4,9 @@ import { AnimatePresence, motion, type Variants } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
 import { useMemo, useState } from "react";
+import { CookbookBadge } from "@/components/cookbook-badge";
 import { spring } from "@/components/motion";
-import type { RecipeListItem } from "@/lib/types";
+import type { Cookbook, RecipeListItem } from "@/lib/types";
 import { t } from "@/i18n";
 
 const grid: Variants = {
@@ -18,29 +19,46 @@ const card: Variants = {
   show: { opacity: 1, y: 0, scale: 1, transition: { type: "spring", stiffness: 260, damping: 24 } },
 };
 
-export function RecipeList({ recipes }: { recipes: RecipeListItem[] }) {
+type ListCookbook = Pick<Cookbook, "id" | "name" | "emoji">;
+
+type Props = {
+  recipes: RecipeListItem[];
+  cookbooks: ListCookbook[];
+  /** Shows the title, count and cookbook filter (off when embedded in a cookbook page). */
+  standalone?: boolean;
+};
+
+export function RecipeList({ recipes, cookbooks, standalone = true }: Props) {
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState<string | null>(null);
+  const [cookbookId, setCookbookId] = useState<string | null>(null);
 
+  const cookbookById = useMemo(() => new Map(cookbooks.map((b) => [b.id, b])), [cookbooks]);
   const categories = useMemo(
     () => [...new Set(recipes.map((r) => r.category).filter((c): c is string => Boolean(c)))].sort(),
     [recipes],
   );
+  const showCookbooks = standalone && cookbooks.length > 1;
 
   const q = query.trim().toLowerCase();
   const filtered = recipes.filter(
     (r) =>
       (!category || r.category === category) &&
+      (!cookbookId || r.cookbook_id === cookbookId) &&
       (!q || r.title.toLowerCase().includes(q) || r.tags.some((tag) => tag.toLowerCase().includes(q))),
   );
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <h1 className="font-serif text-3xl font-semibold text-forest-900 sm:text-4xl">{t.recipes.title}</h1>
-          <p className="mt-1 text-sm text-muted">{t.recipes.count(recipes.length)}</p>
-        </div>
+        {standalone ? (
+          <div>
+            <h1 className="font-serif text-3xl font-semibold text-forest-900 sm:text-4xl">{t.recipes.title}</h1>
+            <p className="mt-1 text-sm text-muted">{t.recipes.count(recipes.length)}</p>
+          </div>
+        ) : (
+          <span />
+        )}
         <div className="relative sm:w-72">
           <span className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-muted">⌕</span>
           <input
@@ -53,36 +71,31 @@ export function RecipeList({ recipes }: { recipes: RecipeListItem[] }) {
         </div>
       </div>
 
+      {showCookbooks && (
+        <FilterChips
+          layoutId="cookbook-pill"
+          value={cookbookId}
+          onChange={setCookbookId}
+          options={[
+            { value: null, label: t.recipes.allCookbooks },
+            ...cookbooks.map((b) => ({ value: b.id, label: `${b.emoji} ${b.name}` })),
+          ]}
+        />
+      )}
       {categories.length > 0 && (
-        <div className="flex flex-wrap gap-2">
-          {[null, ...categories].map((c) => {
-            const active = category === c;
-            return (
-              <motion.button
-                key={c ?? "__all"}
-                onClick={() => setCategory(c)}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                transition={spring}
-                className={`relative rounded-full px-3.5 py-1.5 text-sm transition-colors ${
-                  active ? "text-cream" : "bg-cream/70 text-forest-800 shadow-soft hover:bg-cream"
-                }`}
-              >
-                {active && (
-                  <motion.span layoutId="category-pill" className="absolute inset-0 rounded-full bg-forest-700 shadow-soft" transition={spring} />
-                )}
-                <span className="relative">{c ?? t.recipes.all}</span>
-              </motion.button>
-            );
-          })}
-        </div>
+        <FilterChips
+          layoutId="category-pill"
+          value={category}
+          onChange={setCategory}
+          options={[{ value: null, label: t.recipes.all }, ...categories.map((c) => ({ value: c, label: c }))]}
+        />
       )}
 
       {filtered.length === 0 ? (
         <p className="py-16 text-center text-muted">{t.recipes.noResults}</p>
       ) : (
         <motion.ul
-          key={`${category}-${q}`}
+          key={`${category}-${cookbookId}-${q}`}
           variants={grid}
           initial="hidden"
           animate="show"
@@ -91,7 +104,7 @@ export function RecipeList({ recipes }: { recipes: RecipeListItem[] }) {
           <AnimatePresence>
             {filtered.map((recipe) => (
               <motion.li key={recipe.id} variants={card} layout>
-                <RecipeCard recipe={recipe} />
+                <RecipeCard recipe={recipe} cookbook={standalone ? cookbookById.get(recipe.cookbook_id) : undefined} />
               </motion.li>
             ))}
           </AnimatePresence>
@@ -101,7 +114,39 @@ export function RecipeList({ recipes }: { recipes: RecipeListItem[] }) {
   );
 }
 
-function RecipeCard({ recipe }: { recipe: RecipeListItem }) {
+function FilterChips<T extends string | null>(props: {
+  layoutId: string;
+  value: T;
+  onChange: (value: T) => void;
+  options: { value: T; label: string }[];
+}) {
+  return (
+    <div className="flex flex-wrap gap-2">
+      {props.options.map((option) => {
+        const active = props.value === option.value;
+        return (
+          <motion.button
+            key={option.value ?? "__all"}
+            onClick={() => props.onChange(option.value)}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            transition={spring}
+            className={`relative rounded-full px-3.5 py-1.5 text-sm transition-colors ${
+              active ? "text-cream" : "bg-cream/70 text-forest-800 shadow-soft hover:bg-cream"
+            }`}
+          >
+            {active && (
+              <motion.span layoutId={props.layoutId} className="absolute inset-0 rounded-full bg-forest-700 shadow-soft" transition={spring} />
+            )}
+            <span className="relative">{option.label}</span>
+          </motion.button>
+        );
+      })}
+    </div>
+  );
+}
+
+function RecipeCard({ recipe, cookbook }: { recipe: RecipeListItem; cookbook?: ListCookbook }) {
   return (
     <motion.div
       className="h-full rounded-2xl"
@@ -134,9 +179,10 @@ function RecipeCard({ recipe }: { recipe: RecipeListItem }) {
             </span>
           )}
         </div>
-        <div className="p-3.5">
+        <div className="space-y-1.5 p-3.5">
           <h2 className="line-clamp-2 font-medium leading-snug text-forest-900">{recipe.title}</h2>
-          {totalTime(recipe) && <p className="mt-1 text-xs text-muted">⏱ {totalTime(recipe)}</p>}
+          {cookbook && <CookbookBadge cookbook={cookbook} />}
+          {totalTime(recipe) && <p className="text-xs text-muted">⏱ {totalTime(recipe)}</p>}
         </div>
       </Link>
     </motion.div>

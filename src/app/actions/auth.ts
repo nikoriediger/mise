@@ -22,7 +22,7 @@ export async function signUp(_prev: AuthState, formData: FormData): Promise<Auth
   const email = String(formData.get("email") ?? "").trim();
   const password = String(formData.get("password") ?? "");
   const displayName = String(formData.get("display_name") ?? "").trim();
-  const cookbookName = String(formData.get("cookbook_name") ?? "").trim();
+  const familyName = String(formData.get("family_name") ?? "").trim();
   const inviteToken = String(formData.get("invite") ?? "").trim();
 
   if (password.length < 8) {
@@ -46,7 +46,8 @@ export async function signUp(_prev: AuthState, formData: FormData): Promise<Auth
     options: {
       data: {
         display_name: displayName,
-        cookbook_name: cookbookName || t.auth.cookbookNameDefault,
+        family_name: familyName || t.auth.familyNameDefault,
+        cookbook_name: t.cookbooks.defaultName(displayName),
         invite_token: inviteToken || undefined,
       },
     },

@@ -1,10 +1,12 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
+import { CookbookBadge } from "@/components/cookbook-badge";
+import { CopyRecipeButton } from "@/components/copy-recipe-button";
 import { DeleteRecipeButton } from "@/components/delete-recipe-button";
 import { ImageGallery } from "@/components/image-gallery";
 import { Loading } from "@/components/loading";
-import { getRecipe } from "@/lib/data";
+import { getMyCookbooks, getRecipe } from "@/lib/data";
 import { t } from "@/i18n";
 
 export default function RecipePage({ params }: PageProps<"/recipes/[id]">) {
@@ -17,7 +19,7 @@ export default function RecipePage({ params }: PageProps<"/recipes/[id]">) {
 
 async function RecipeDetail({ params }: Pick<PageProps<"/recipes/[id]">, "params">) {
   const { id } = await params;
-  const recipe = await getRecipe(id);
+  const [recipe, myCookbooks] = await Promise.all([getRecipe(id), getMyCookbooks()]);
   if (!recipe) notFound();
 
   const gallery = recipe.images
@@ -38,10 +40,20 @@ async function RecipeDetail({ params }: Pick<PageProps<"/recipes/[id]">, "params
             <p className="mb-1 text-xs font-semibold uppercase tracking-[0.18em] text-moss-600">{recipe.category}</p>
           )}
           <h1 className="font-serif text-4xl font-semibold leading-tight text-forest-900 sm:text-5xl">{recipe.title}</h1>
+          <p className="mt-3 flex flex-wrap items-center gap-2 text-sm text-muted">
+            {t.recipes.fromCookbook} <CookbookBadge cookbook={recipe.cookbook} link className="text-sm" />
+            {!recipe.canEdit && recipe.cookbook.owner_name && <span>· {t.recipes.byOwner(recipe.cookbook.owner_name)}</span>}
+          </p>
         </div>
-        <div className="flex gap-2">
-          <Link href={`/recipes/${recipe.id}/edit`} className="btn-secondary">{t.common.edit}</Link>
-          <DeleteRecipeButton id={recipe.id} />
+        <div className="flex flex-wrap gap-2">
+          {recipe.canEdit ? (
+            <>
+              <Link href={`/recipes/${recipe.id}/edit`} className="btn-secondary">{t.common.edit}</Link>
+              <DeleteRecipeButton id={recipe.id} />
+            </>
+          ) : (
+            <CopyRecipeButton recipeId={recipe.id} cookbooks={myCookbooks} primary />
+          )}
         </div>
       </div>
 

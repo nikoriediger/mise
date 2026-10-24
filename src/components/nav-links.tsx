@@ -9,7 +9,8 @@ import { t } from "@/i18n";
 
 const links = [
   { href: "/", label: t.nav.recipes, match: (p: string) => p === "/" || (p.startsWith("/recipes/") && p !== "/recipes/new") },
-  { href: "/cookbook", label: t.nav.cookbook, match: (p: string) => p.startsWith("/cookbook") },
+  { href: "/cookbooks", label: t.nav.cookbooks, match: (p: string) => p.startsWith("/cookbooks") },
+  { href: "/family", label: t.nav.family, match: (p: string) => p.startsWith("/family") },
 ];
 
 export function NavLinks() {

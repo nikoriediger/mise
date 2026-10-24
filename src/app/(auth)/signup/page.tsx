@@ -24,11 +24,11 @@ async function Signup({ searchParams }: Pick<PageProps<"/signup">, "searchParams
     const { data } = isUuid(invite)
       ? await supabase.rpc("get_invite", { p_token: invite })
       : { data: null };
-    const cookbookName: string | undefined = data?.[0]?.cookbook_name;
-    if (!cookbookName) {
+    const familyName: string | undefined = data?.[0]?.family_name;
+    if (!familyName) {
       return <Message text={t.auth.invalidInvite} />;
     }
-    return <SignupForm invite={invite} cookbookName={cookbookName} />;
+    return <SignupForm invite={invite} familyName={familyName} />;
   }
 
   const { data: mode } = await supabase.rpc("get_signup_mode");
