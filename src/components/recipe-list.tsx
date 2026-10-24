@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useMemo, useState, useTransition } from "react";
 import { removeFromCookbook } from "@/app/actions/recipes";
+import { Avatar } from "@/components/avatar";
 import { spring } from "@/components/motion";
 import { allowedMissing, matchIngredients } from "@/lib/ingredient-search";
 import type { Cookbook, RecipeListItem } from "@/lib/types";
@@ -284,7 +285,7 @@ function RecipeCard({ recipe, missing, removableFrom, onRemoved }: { recipe: Rec
           <h2 className="line-clamp-2 font-medium leading-snug text-forest-900">{recipe.title}</h2>
           {!recipe.is_mine && recipe.owner_name && (
             <span className="inline-flex max-w-full items-center gap-1 rounded-full bg-sage-100/90 px-2.5 py-0.5 text-xs font-medium text-forest-800">
-              👤 <span className="truncate">{recipe.owner_name}</span> <span title={t.recipes.readOnly}>🔒</span>
+              <Avatar url={recipe.owner_avatar} name={recipe.owner_name} size="xs" /> <span className="truncate">{recipe.owner_name}</span> <span title={t.recipes.readOnly}>🔒</span>
             </span>
           )}
           {totalTime(recipe, t.common.minutes) && <p className="text-xs text-muted">⏱ {totalTime(recipe, t.common.minutes)}</p>}

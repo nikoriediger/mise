@@ -3,7 +3,9 @@ import { cache } from "react";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import {
+  AVATAR_BUCKET,
   IMAGE_BUCKET,
+  type Profile,
   type Cookbook,
   type CookbookWithCover,
   type FamilyMembership,
@@ -57,16 +59,21 @@ export async function getPrimaryFamily(): Promise<FamilyMembership> {
 const getLibrary = cache(async () => {
   const user = await getCurrentUser();
   const supabase = await createClient();
-  const [books, members, recipes, links] = await Promise.all([
+  const [books, members, recipes, links, profiles] = await Promise.all([
     supabase.from("cookbooks").select("id, family_id, owner_id, name, emoji, is_default, created_at").order("created_at"),
     supabase.from("family_members").select("family_id, user_id, display_name"),
     supabase.from("recipes").select("id, owner_id, family_id"),
     supabase.from("cookbook_recipes").select("cookbook_id, recipe_id"),
+    supabase.from("profiles").select("user_id, display_name, avatar_path"),
   ]);
-  for (const r of [books, members, recipes, links]) if (r.error) throw r.error;
+  for (const r of [books, members, recipes, links, profiles]) if (r.error) throw r.error;
 
   const names = new Map(members.data!.map((m) => [`${m.family_id}:${m.user_id}`, m.display_name ?? ""]));
-  const ownerName = (familyId: string, userId: string) => names.get(`${familyId}:${userId}`) ?? "";
+  const profileName = new Map(profiles.data!.map((p) => [p.user_id, p.display_name ?? ""]));
+  const ownerName = (familyId: string, userId: string) => profileName.get(userId) || names.get(`${familyId}:${userId}`) || "";
+  const avatarPaths = new Map(profiles.data!.filter((p) => p.avatar_path).map((p) => [p.user_id, p.avatar_path as string]));
+  const avatarUrls = await signUrls([...avatarPaths.values()], AVATAR_BUCKET);
+  const avatarOf = (userId: string) => avatarUrls.get(avatarPaths.get(userId) ?? "") ?? null;
 
   const mainBook = new Map<string, string>(); // family:owner -> main cookbook id
   for (const b of books.data!) if (b.is_default) mainBook.set(`${b.family_id}:${b.owner_id}`, b.id);
@@ -88,6 +95,7 @@ const getLibrary = cache(async () => {
       family_id: b.family_id,
       owner_id: b.owner_id,
       owner_name: ownerName(b.family_id, b.owner_id),
+      owner_avatar: avatarOf(b.owner_id),
       name: b.name,
       emoji: b.emoji,
       is_default: b.is_default,
@@ -99,7 +107,7 @@ const getLibrary = cache(async () => {
     // Own cookbooks first (main cookbook first), then the family's
     .sort((a, b) => Number(b.is_mine) - Number(a.is_mine) || Number(b.is_default) - Number(a.is_default));
 
-  return { user, cookbooks, membership, ownerName };
+  return { user, cookbooks, membership, ownerName, avatarOf };
 });
 
 /** All cookbooks the user can see (their families' cookbooks), own ones first. */
@@ -143,7 +151,7 @@ export async function getCookbooksWithCovers(): Promise<CookbookWithCover[]> {
 
 /** Recipes of all families, or only those in one cookbook. */
 export async function listRecipes(cookbookId?: string): Promise<RecipeListItem[]> {
-  const { user, cookbooks, membership, ownerName } = await getLibrary();
+  const { user, cookbooks, membership, ownerName, avatarOf } = await getLibrary();
   const supabase = await createClient();
   let query = supabase
     .from("recipes")
@@ -181,6 +189,7 @@ export async function listRecipes(cookbookId?: string): Promise<RecipeListItem[]
     ingredients: recipe.ingredients,
     language: recipe.language,
     owner_name: ownerName(recipe.family_id, recipe.owner_id),
+    owner_avatar: avatarOf(recipe.owner_id),
     is_mine: recipe.owner_id === user.id,
     cookbook_ids: membership.get(recipe.id) ?? [],
     coverUrl: urls.get(coverPaths.get(recipe.id) ?? "") ?? null,
@@ -198,7 +207,7 @@ export async function listRecipeTitles(): Promise<{ id: string; title: string; o
 
 export async function getRecipe(id: string): Promise<RecipeWithImages | null> {
   if (!isUuid(id)) return null;
-  const { user, cookbooks, membership, ownerName } = await getLibrary();
+  const { user, cookbooks, membership, ownerName, avatarOf } = await getLibrary();
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("recipes")
@@ -219,15 +228,32 @@ export async function getRecipe(id: string): Promise<RecipeWithImages | null> {
     ...recipe,
     images: sorted.map((img) => ({ ...img, url: urls.get(img.storage_path) ?? "" })),
     owner_name: ownerName(recipe.family_id, recipe.owner_id),
+    owner_avatar: avatarOf(recipe.owner_id),
     canEdit: recipe.owner_id === user.id,
     cookbooks: cookbooks.filter((b) => inBooks.includes(b.id)),
   };
+}
+
+/** The signed-in user's own profile. */
+export async function getMyProfile(): Promise<Profile> {
+  const user = await getCurrentUser();
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("user_id, display_name, bio, avatar_path, notify_notes, notify_new_recipes")
+    .eq("user_id", user.id)
+    .maybeSingle();
+  if (error) throw error;
+  const profile = data ?? { user_id: user.id, display_name: "", bio: "", avatar_path: null, notify_notes: false, notify_new_recipes: false };
+  const urls = profile.avatar_path ? await signUrls([profile.avatar_path], AVATAR_BUCKET) : new Map<string, string>();
+  return { ...profile, display_name: profile.display_name ?? "", avatar_url: urls.get(profile.avatar_path ?? "") ?? null };
 }
 
 export type RecipeNote = {
   id: string;
   body: string;
   author_name: string;
+  author_avatar: string | null;
   created_at: string;
   edited: boolean;
   canEdit: boolean;
@@ -235,7 +261,7 @@ export type RecipeNote = {
 };
 
 export async function getRecipeNotes(recipe: Pick<RecipeWithImages, "id" | "family_id" | "canEdit">): Promise<RecipeNote[]> {
-  const { user, ownerName } = await getLibrary();
+  const { user, ownerName, avatarOf } = await getLibrary();
   const families = await getFamilyMemberships();
   const isAdmin = families.some((f) => f.family_id === recipe.family_id && f.role === "owner");
   const supabase = await createClient();
@@ -249,6 +275,7 @@ export async function getRecipeNotes(recipe: Pick<RecipeWithImages, "id" | "fami
     id: n.id,
     body: n.body,
     author_name: ownerName(recipe.family_id, n.author_id),
+    author_avatar: avatarOf(n.author_id),
     created_at: n.created_at,
     edited: new Date(n.updated_at).getTime() - new Date(n.created_at).getTime() > 1000,
     canEdit: n.author_id === user.id,
@@ -260,6 +287,8 @@ export type Member = {
   user_id: string;
   role: "owner" | "member";
   display_name: string | null;
+  avatar_url: string | null;
+  bio: string;
 };
 
 export type Invite = { token: string; expires_at: string };
@@ -288,15 +317,22 @@ export async function getFamilyDetails() {
     invites = data;
   }
 
-  return { family, members: members as Member[], invites };
+  const { avatarOf } = await getLibrary();
+  const { data: bios } = await supabase.from("profiles").select("user_id, bio");
+  const bioOf = new Map((bios ?? []).map((b) => [b.user_id, b.bio]));
+  return {
+    family,
+    members: members.map((m) => ({ ...m, avatar_url: avatarOf(m.user_id), bio: bioOf.get(m.user_id) ?? "" })) as Member[],
+    invites,
+  };
 }
 
-async function signUrls(paths: string[]): Promise<Map<string, string>> {
+async function signUrls(paths: string[], bucket = IMAGE_BUCKET): Promise<Map<string, string>> {
   const result = new Map<string, string>();
   if (paths.length === 0) return result;
   const supabase = await createClient();
   const { data, error } = await supabase.storage
-    .from(IMAGE_BUCKET)
+    .from(bucket)
     .createSignedUrls(paths, SIGNED_URL_SECONDS);
   if (error) throw error;
   for (const item of data) {

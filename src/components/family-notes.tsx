@@ -3,6 +3,7 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { useState, useTransition } from "react";
 import { addNote, deleteNote, updateNote } from "@/app/actions/notes";
+import { Avatar } from "@/components/avatar";
 import { ConfirmDialog } from "@/components/dialog";
 import { spring } from "@/components/motion";
 import type { RecipeNote } from "@/lib/data";
@@ -82,9 +83,7 @@ function NoteCard({ note }: { note: RecipeNote }) {
   return (
     <div className="card p-4">
       <div className="mb-1 flex flex-wrap items-center gap-2 text-sm">
-        <span className="flex size-7 items-center justify-center rounded-full bg-gradient-to-br from-sage-200 to-mint-200 text-xs font-semibold text-forest-800">
-          {(note.author_name || "?").charAt(0).toUpperCase()}
-        </span>
+        <Avatar url={note.author_avatar} name={note.author_name} size="sm" />
         <span className="font-medium text-forest-900">{note.author_name || "…"}</span>
         <span className="text-muted">
           · {date(note.created_at)}

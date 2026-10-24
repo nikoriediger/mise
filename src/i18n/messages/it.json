@@ -237,5 +237,54 @@
     "title": "Qui non c'è niente in pentola",
     "text": "Questa pagina o questa ricetta non esiste (più).",
     "back": "Torna alle ricette"
+  },
+  "profile": {
+    "title": "Profilo",
+    "open": "Il mio profilo",
+    "photo": "Foto profilo",
+    "takePhoto": "Scatta foto",
+    "choosePhoto": "Dalla galleria",
+    "removePhoto": "Rimuovi foto",
+    "name": "Nome",
+    "namePlaceholder": "es. Niko",
+    "nameRequired": "Inserisci un nome.",
+    "bio": "Su di me",
+    "bioPlaceholder": "es. Adoro la cucina italiana 🍝",
+    "email": "E-mail",
+    "saved": "Salvato ✓",
+    "password": "Cambia password",
+    "newPassword": "Nuova password",
+    "changePassword": "Cambia password",
+    "passwordSaved": "Password cambiata ✓",
+    "notifications": "Notifiche",
+    "notifyNotes": "Nuove note sulle mie ricette",
+    "notifyNotesHint": "subito, appena qualcuno scrive qualcosa",
+    "notifyRecipes": "Nuove ricette in famiglia",
+    "notifyRecipesHint": "raccolte, al massimo una volta al giorno alle 18",
+    "enablePush": "Attiva su questo dispositivo",
+    "pushEnabled": "Attive su questo dispositivo ✓",
+    "pushUnsupported": "Questo dispositivo o browser non supporta le notifiche.",
+    "pushIosHint": "iPhone: installa prima l'app con “Condividi → Aggiungi alla schermata Home” e aprila da lì.",
+    "pushDenied": "Le notifiche sono bloccate. Consentile nelle impostazioni del browser.",
+    "pushTest": "Invia prova"
+  },
+  "push": {
+    "noteTitle": "💬 Nuova nota su “{recipe}”",
+    "noteBody": "{name}: {text}",
+    "recipesTitle": "🍽 Nuove ricette in famiglia",
+    "recipesBy": {
+      "one": "{name} ha aggiunto una nuova ricetta: {titles}",
+      "other": "{name} ha aggiunto {n} nuove ricette: {titles}"
+    },
+    "recipesMany": {
+      "one": "{n} nuova ricetta: {titles}",
+      "other": "{n} nuove ricette: {titles}"
+    },
+    "testTitle": "🌿 Prova",
+    "testBody": "Le notifiche funzionano su questo dispositivo!",
+    "timerTitle": "⏱ Timer scaduto"
+  },
+  "offline": {
+    "banner": "Offline – le ricette viste di recente sono disponibili"
   }
 }

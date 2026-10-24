@@ -168,6 +168,37 @@ await as("00000000-0000-0000-0000-00000000000f", async () => {
 });
 
 // ---------------------------------------------------------------------------
+// Profiles
+// ---------------------------------------------------------------------------
+ok((await one(`select display_name from public.profiles where user_id = $1`, [A])).display_name === "Papa", "existing members got a profile with their name");
+await as(B, async () => {
+  ok((await rows(`select user_id from public.profiles`)).length === 2, "Niko can see the profiles of his family");
+  ok((await rows(`update public.profiles set display_name = 'hacked' where user_id = $1 returning user_id`, [A])).length === 0, "Niko cannot edit Papa's profile");
+  ok((await rows(`update public.profiles set display_name = 'Nikolas', bio = 'Pasta!' where user_id = $1 returning user_id`, [B])).length === 1, "Niko can edit his own profile");
+  ok(!(await tryQ(`insert into storage.objects (bucket_id, name) values ('avatars', $1)`, [`${B}/me.webp`])).error, "Niko can upload his own profile photo");
+  ok(Boolean((await tryQ(`insert into storage.objects (bucket_id, name) values ('avatars', $1)`, [`${A}/fake.webp`])).error), "Niko cannot upload a photo into Papa's folder");
+});
+ok((await one(`select display_name from public.family_members where user_id = $1`, [B])).display_name === "Nikolas", "a new name is mirrored into the family list");
+await as(A, async () => {
+  ok((await rows(`select name from storage.objects where bucket_id = 'avatars'`)).length === 1, "family members can see each other's photos");
+});
+await as("00000000-0000-0000-0000-00000000000f", async () => {
+  ok((await rows(`select user_id from public.profiles`)).length === 0, "outsiders see no profiles");
+  ok((await rows(`select name from storage.objects where bucket_id = 'avatars'`)).length === 0, "outsiders see no profile photos");
+});
+
+// ---------------------------------------------------------------------------
+// Push subscriptions
+// ---------------------------------------------------------------------------
+await as(B, async () => {
+  ok(!(await tryQ(`insert into public.push_subscriptions (user_id, endpoint, p256dh, auth) values ($1, 'https://push.example/niko', 'k', 'a')`, [B])).error, "Niko can register his device for push");
+  ok(Boolean((await tryQ(`insert into public.push_subscriptions (user_id, endpoint, p256dh, auth) values ($1, 'https://push.example/fake', 'k', 'a')`, [A])).error), "Niko cannot register a device for Papa");
+});
+await as(A, async () => {
+  ok((await rows(`select id from public.push_subscriptions`)).length === 0, "push subscriptions of others stay private");
+});
+
+// ---------------------------------------------------------------------------
 // Outsider
 // ---------------------------------------------------------------------------
 const STRANGER = "00000000-0000-0000-0000-00000000000f";
@@ -186,6 +217,7 @@ const tok2 = (await one(`select token from public.invites where accepted_at is n
 await db.query(`insert into auth.users values ($1, $2)`, [C, JSON.stringify({ display_name: "Mama", cookbook_name: "Mamas Kochbuch", invite_token: tok2 })]);
 const cBooks = await rows(`select name, family_id, is_default from public.cookbooks where owner_id = $1`, [C]);
 ok(cBooks.length === 1 && cBooks[0].name === "Mamas Kochbuch" && cBooks[0].family_id === fam && cBooks[0].is_default, "invited user joins the family with her own main cookbook");
+ok((await one(`select display_name from public.profiles where user_id = $1`, [C])).display_name === "Mama", "new users get a profile");
 const blocked = await tryQ(`insert into auth.users values ($1, '{"display_name":"X"}')`, ["00000000-0000-0000-0000-00000000000d"]);
 ok(Boolean(blocked.error) && blocked.error.includes("signup_disabled"), "sign-up without invite is blocked in invite mode");
 ok((await one(`select public.get_signup_mode() m`)).m === "invite", "get_signup_mode works");

@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { ActionsSheet } from "@/components/actions-sheet";
 import { CookModeButton } from "@/components/cook-mode";
+import { Avatar } from "@/components/avatar";
 import { CookbookBadge } from "@/components/cookbook-badge";
 import { CookbookMembershipButton } from "@/components/cookbook-membership-button";
 import { CopyRecipeButton } from "@/components/copy-recipe-button";
@@ -75,8 +76,8 @@ async function RecipeDetail({ params }: Pick<PageProps<"/[lang]/recipes/[id]">, 
               </p>
             )}
             {!recipe.canEdit && (
-              <p className="mt-2 text-sm text-muted">
-                👤 {f(t.recipes.byOwner, { name: recipe.owner_name || "…" })} <span className="print:hidden">· 🔒 {t.recipes.readOnly}</span>
+              <p className="mt-2 flex items-center gap-1.5 text-sm text-muted">
+                <Avatar url={recipe.owner_avatar} name={recipe.owner_name} size="sm" /> {f(t.recipes.byOwner, { name: recipe.owner_name || "…" })} <span className="print:hidden">· 🔒 {t.recipes.readOnly}</span>
               </p>
             )}
             {recipe.cookbooks.length > 0 && (

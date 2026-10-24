@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Fraunces, Geist } from "next/font/google";
 import { MotionProvider } from "@/components/motion";
+import { OfflineBanner, ServiceWorkerRegister } from "@/components/pwa";
 import { I18nProvider } from "@/i18n/client";
 import { appName, locales } from "@/i18n/config";
 import { getMessages } from "@/i18n/dictionaries";
@@ -41,7 +42,11 @@ export default async function RootLayout({ children }: LayoutProps<"/[lang]">) {
     <html lang={locale} className={`${geistSans.variable} ${fraunces.variable} h-full antialiased`}>
       <body className="flex min-h-full flex-col font-sans">
         <I18nProvider locale={locale} messages={getMessages(locale)}>
-          <MotionProvider>{children}</MotionProvider>
+          <MotionProvider>
+            {children}
+            <OfflineBanner />
+          </MotionProvider>
+          <ServiceWorkerRegister />
         </I18nProvider>
       </body>
     </html>

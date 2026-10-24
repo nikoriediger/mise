@@ -26,6 +26,21 @@ export async function compressImage(file: File): Promise<Blob> {
   return (await toBlob(canvas, "image/jpeg")) ?? file;
 }
 
+/** Center-crops an image to a square of `size` px (for profile photos). */
+export async function cropSquare(file: File, size = 512): Promise<Blob> {
+  const bitmap = await createImageBitmap(file, { imageOrientation: "from-image" });
+  const side = Math.min(bitmap.width, bitmap.height);
+  const canvas = document.createElement("canvas");
+  canvas.width = canvas.height = Math.min(size, side);
+  canvas
+    .getContext("2d")!
+    .drawImage(bitmap, (bitmap.width - side) / 2, (bitmap.height - side) / 2, side, side, 0, 0, canvas.width, canvas.height);
+  bitmap.close();
+  const webp = await toBlob(canvas, "image/webp");
+  if (webp?.type === "image/webp") return webp;
+  return (await toBlob(canvas, "image/jpeg")) ?? file;
+}
+
 function toBlob(canvas: HTMLCanvasElement, type: string) {
   return new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, type, QUALITY));
 }

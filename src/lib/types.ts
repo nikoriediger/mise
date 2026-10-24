@@ -40,6 +40,7 @@ export type Cookbook = {
   family_id: string;
   owner_id: string;
   owner_name: string;
+  owner_avatar: string | null;
   name: string;
   emoji: string;
   is_default: boolean;
@@ -52,6 +53,7 @@ export type CookbookWithCover = Cookbook & { coverUrl: string | null };
 export type RecipeWithImages = Recipe & {
   images: RecipeImage[];
   owner_name: string;
+  owner_avatar: string | null;
   /** True if the current user owns the recipe. */
   canEdit: boolean;
   /** All cookbooks (visible to the user) that contain this recipe. */
@@ -63,6 +65,7 @@ export type RecipeListItem = Pick<
   "id" | "title" | "category" | "tags" | "prep_minutes" | "cook_minutes" | "owner_id" | "family_id" | "ingredients" | "language"
 > & {
   owner_name: string;
+  owner_avatar: string | null;
   is_mine: boolean;
   /** Cookbooks containing the recipe (main cookbook of the owner + collections). */
   cookbook_ids: string[];
@@ -90,5 +93,16 @@ export type FamilyMembership = {
 };
 
 export const IMAGE_BUCKET = "recipe-images";
+export const AVATAR_BUCKET = "avatars";
+
+export type Profile = {
+  user_id: string;
+  display_name: string;
+  bio: string;
+  avatar_path: string | null;
+  avatar_url: string | null;
+  notify_notes: boolean;
+  notify_new_recipes: boolean;
+};
 
 export const COOKBOOK_EMOJIS = ["📗", "📘", "📙", "📕", "📒", "🍰", "🥘", "🍝", "🥗", "🍲", "🥐", "🎄", "🌶️", "🍹"];

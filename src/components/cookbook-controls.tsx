@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useActionState, useState, useTransition } from "react";
 import { createCookbook, deleteCookbook, updateCookbook, type CookbookFormState } from "@/app/actions/cookbooks";
 import { ConfirmDialog, Dialog } from "@/components/dialog";
+import { Avatar } from "@/components/avatar";
 import { spring } from "@/components/motion";
 import { COOKBOOK_EMOJIS, type Cookbook, type CookbookWithCover } from "@/lib/types";
 import { useI18n } from "@/i18n/client";
@@ -44,7 +45,8 @@ export function CookbookGrid({ cookbooks, showOwner }: { cookbooks: CookbookWith
               </span>
               <span className="min-w-0 pt-2">
                 <span className="block truncate font-serif text-lg font-semibold text-forest-900">{b.name}</span>
-                <span className="block text-sm text-muted">
+                <span className="flex items-center gap-1.5 text-sm text-muted">
+                  {showOwner && <Avatar url={b.owner_avatar} name={b.owner_name} size="xs" />}
                   {[showOwner && b.owner_name && f(t.recipes.byOwner, { name: b.owner_name }), p(t.recipes.count, b.recipe_count)].filter(Boolean).join(" · ")}
                 </span>
               </span>

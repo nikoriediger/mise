@@ -237,5 +237,54 @@
     "title": "Hier gibt es nichts zu essen",
     "text": "Diese Seite oder dieses Rezept gibt es nicht (mehr).",
     "back": "Zu den Rezepten"
+  },
+  "profile": {
+    "title": "Profil",
+    "open": "Mein Profil",
+    "photo": "Profilfoto",
+    "takePhoto": "Foto aufnehmen",
+    "choosePhoto": "Aus Galerie",
+    "removePhoto": "Foto entfernen",
+    "name": "Name",
+    "namePlaceholder": "z. B. Niko",
+    "nameRequired": "Bitte gib einen Namen ein.",
+    "bio": "Über mich",
+    "bioPlaceholder": "z. B. Koche am liebsten italienisch 🍝",
+    "email": "E-Mail",
+    "saved": "Gespeichert ✓",
+    "password": "Passwort ändern",
+    "newPassword": "Neues Passwort",
+    "changePassword": "Passwort ändern",
+    "passwordSaved": "Passwort geändert ✓",
+    "notifications": "Benachrichtigungen",
+    "notifyNotes": "Neue Notizen zu meinen Rezepten",
+    "notifyNotesHint": "sofort, sobald jemand etwas schreibt",
+    "notifyRecipes": "Neue Rezepte in der Familie",
+    "notifyRecipesHint": "gesammelt, höchstens einmal am Tag um 18 Uhr",
+    "enablePush": "Auf diesem Gerät aktivieren",
+    "pushEnabled": "Auf diesem Gerät aktiv ✓",
+    "pushUnsupported": "Dieses Gerät oder dieser Browser unterstützt keine Benachrichtigungen.",
+    "pushIosHint": "iPhone: Installiere die App zuerst über „Teilen → Zum Home-Bildschirm“ und öffne sie dann von dort.",
+    "pushDenied": "Benachrichtigungen sind blockiert. Erlaube sie in den Einstellungen deines Browsers.",
+    "pushTest": "Test senden"
+  },
+  "push": {
+    "noteTitle": "💬 Neue Notiz zu „{recipe}“",
+    "noteBody": "{name}: {text}",
+    "recipesTitle": "🍽 Neue Rezepte in der Familie",
+    "recipesBy": {
+      "one": "{name} hat ein neues Rezept hinzugefügt: {titles}",
+      "other": "{name} hat {n} neue Rezepte hinzugefügt: {titles}"
+    },
+    "recipesMany": {
+      "one": "{n} neues Rezept: {titles}",
+      "other": "{n} neue Rezepte: {titles}"
+    },
+    "testTitle": "🌿 Test",
+    "testBody": "Benachrichtigungen funktionieren auf diesem Gerät!",
+    "timerTitle": "⏱ Timer abgelaufen"
+  },
+  "offline": {
+    "banner": "Offline – zuletzt angesehene Rezepte sind verfügbar"
   }
 }

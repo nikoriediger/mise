@@ -237,5 +237,54 @@
     "title": "Nothing cooking here",
     "text": "This page or recipe doesn't exist (anymore).",
     "back": "Back to recipes"
+  },
+  "profile": {
+    "title": "Profile",
+    "open": "My profile",
+    "photo": "Profile photo",
+    "takePhoto": "Take photo",
+    "choosePhoto": "From gallery",
+    "removePhoto": "Remove photo",
+    "name": "Name",
+    "namePlaceholder": "e.g. Niko",
+    "nameRequired": "Please enter a name.",
+    "bio": "About me",
+    "bioPlaceholder": "e.g. I love cooking Italian 🍝",
+    "email": "Email",
+    "saved": "Saved ✓",
+    "password": "Change password",
+    "newPassword": "New password",
+    "changePassword": "Change password",
+    "passwordSaved": "Password changed ✓",
+    "notifications": "Notifications",
+    "notifyNotes": "New notes on my recipes",
+    "notifyNotesHint": "right away when someone writes something",
+    "notifyRecipes": "New recipes in the family",
+    "notifyRecipesHint": "collected, at most once a day at 6 pm",
+    "enablePush": "Enable on this device",
+    "pushEnabled": "Active on this device ✓",
+    "pushUnsupported": "This device or browser doesn't support notifications.",
+    "pushIosHint": "iPhone: first install the app via “Share → Add to Home Screen” and open it from there.",
+    "pushDenied": "Notifications are blocked. Allow them in your browser settings.",
+    "pushTest": "Send test"
+  },
+  "push": {
+    "noteTitle": "💬 New note on “{recipe}”",
+    "noteBody": "{name}: {text}",
+    "recipesTitle": "🍽 New recipes in the family",
+    "recipesBy": {
+      "one": "{name} added a new recipe: {titles}",
+      "other": "{name} added {n} new recipes: {titles}"
+    },
+    "recipesMany": {
+      "one": "{n} new recipe: {titles}",
+      "other": "{n} new recipes: {titles}"
+    },
+    "testTitle": "🌿 Test",
+    "testBody": "Notifications work on this device!",
+    "timerTitle": "⏱ Timer done"
+  },
+  "offline": {
+    "banner": "Offline – recently viewed recipes are available"
   }
 }

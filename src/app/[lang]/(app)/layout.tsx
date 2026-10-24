@@ -1,7 +1,10 @@
 import Link from "next/link";
+import { Suspense } from "react";
 import { signOut } from "@/app/actions/auth";
+import { Avatar } from "@/components/avatar";
 import { LanguageToggle } from "@/components/language-switcher";
 import { BottomNav, NavLinks } from "@/components/nav-links";
+import { getMyProfile } from "@/lib/data";
 import { appName } from "@/i18n/config";
 import { getI18n } from "@/i18n/server";
 
@@ -30,10 +33,29 @@ export default async function AppLayout({ children }: { children: React.ReactNod
               <span>{t.nav.newRecipe}</span>
             </Link>
           </nav>
+          <Suspense fallback={<span className="size-10 shrink-0 rounded-full bg-sage-100" />}>
+            <ProfileLink label={t.profile.open} />
+          </Suspense>
         </div>
       </header>
       <main className="mx-auto w-full max-w-5xl flex-1 px-4 pb-32 pt-6 md:pb-10 md:pt-8 print:p-0">{children}</main>
-      <BottomNav />
+      <Suspense fallback={<BottomNav />}>
+        <BottomNavWithProfile />
+      </Suspense>
     </>
   );
+}
+
+async function ProfileLink({ label }: { label: string }) {
+  const profile = await getMyProfile();
+  return (
+    <Link href="/profile" aria-label={label} title={label} className="shrink-0 rounded-full ring-2 ring-cream transition-transform hover:scale-105">
+      <Avatar url={profile.avatar_url} name={profile.display_name} size="md" />
+    </Link>
+  );
+}
+
+async function BottomNavWithProfile() {
+  const profile = await getMyProfile();
+  return <BottomNav profile={{ name: profile.display_name, avatarUrl: profile.avatar_url }} />;
 }

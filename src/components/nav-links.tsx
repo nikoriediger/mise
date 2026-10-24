@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Suspense, useState } from "react";
 import { signOut } from "@/app/actions/auth";
+import { Avatar } from "@/components/avatar";
 import { Dialog } from "@/components/dialog";
 import { LanguageList } from "@/components/language-switcher";
 import { spring } from "@/components/motion";
@@ -65,11 +66,13 @@ function DesktopLinks({ pathname }: { pathname: string | null }) {
 }
 
 /** Bottom tab bar for phones: Recipes · Cookbooks · ＋ · Family · More. */
-export function BottomNav() {
-  return <WithPathname>{(pathname) => <BottomTabs pathname={pathname} />}</WithPathname>;
+type NavProfile = { name: string; avatarUrl: string | null };
+
+export function BottomNav({ profile }: { profile?: NavProfile }) {
+  return <WithPathname>{(pathname) => <BottomTabs pathname={pathname} profile={profile} />}</WithPathname>;
 }
 
-function BottomTabs({ pathname }: { pathname: string | null }) {
+function BottomTabs({ pathname, profile }: { pathname: string | null; profile?: NavProfile }) {
   const { t } = useI18n();
   const [moreOpen, setMoreOpen] = useState(false);
   const tab = (link: (typeof links)[number]) => {
@@ -122,6 +125,20 @@ function BottomTabs({ pathname }: { pathname: string | null }) {
 
       <Dialog open={moreOpen} onClose={() => setMoreOpen(false)} className="px-5">
         <div className="space-y-6">
+          {profile && (
+            <Link
+              href="/profile"
+              onClick={() => setMoreOpen(false)}
+              className="flex min-h-16 items-center gap-3 rounded-2xl border border-line bg-cream px-4 py-3 transition-colors hover:bg-sage-50"
+            >
+              <Avatar url={profile.avatarUrl} name={profile.name} size="md" />
+              <span className="min-w-0 flex-1">
+                <span className="block truncate font-semibold text-forest-900">{profile.name || "…"}</span>
+                <span className="block text-sm text-muted">{t.profile.open}</span>
+              </span>
+              <span aria-hidden className="text-muted">›</span>
+            </Link>
+          )}
           <section>
             <h2 className="mb-3 font-serif text-xl font-semibold text-forest-900">{t.lang.title}</h2>
             <LanguageList />
