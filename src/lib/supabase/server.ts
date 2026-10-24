@@ -1,8 +1,11 @@
 import "server-only";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
+import { connection } from "next/server";
 
 export async function createClient() {
+  // Database reads are always per request; this keeps them out of prerendering.
+  await connection();
   const cookieStore = await cookies();
 
   return createServerClient(
