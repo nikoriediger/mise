@@ -28,7 +28,11 @@
     "de": "Deutsch",
     "en": "English",
     "it": "Italiano",
-    "short": { "de": "DE", "en": "EN", "it": "IT" }
+    "short": {
+      "de": "DE",
+      "en": "EN",
+      "it": "IT"
+    }
   },
   "auth": {
     "signIn": "Anmelden",
@@ -49,7 +53,10 @@
   },
   "recipes": {
     "title": "Rezepte",
-    "count": { "one": "{n} Rezept", "other": "{n} Rezepte" },
+    "count": {
+      "one": "{n} Rezept",
+      "other": "{n} Rezepte"
+    },
     "empty": "Noch keine Rezepte.",
     "emptyCta": "Erstes Rezept hinzufügen",
     "search": "Rezepte suchen…",
@@ -59,7 +66,10 @@
     "allLanguages": "Alle Sprachen",
     "language": "Sprache",
     "servings": "Portionen",
-    "servingsCount": { "one": "{n} Portion", "other": "{n} Portionen" },
+    "servingsCount": {
+      "one": "{n} Portion",
+      "other": "{n} Portionen"
+    },
     "prepTime": "Vorbereitung",
     "cookTime": "Koch-/Backzeit",
     "ingredients": "Zutaten",
@@ -148,7 +158,10 @@
     "addRecipes": "Rezepte hinzufügen",
     "addRecipesTitle": "Rezepte zu „{name}“ hinzufügen",
     "add": "Hinzufügen",
-    "addSelected": { "one": "{n} hinzufügen", "other": "{n} hinzufügen" },
+    "addSelected": {
+      "one": "{n} hinzufügen",
+      "other": "{n} hinzufügen"
+    },
     "pickerEmpty": "Alle Rezepte sind schon in diesem Kochbuch.",
     "newRecipe": "Neues Rezept",
     "readOnly": "Das ist das Kochbuch von {name}. Du kannst die Rezepte lesen und kopieren, ändern kann sie nur {name}."
@@ -219,5 +232,10 @@
     "revoke": "Widerrufen",
     "removeMember": "Entfernen",
     "removeConfirm": "Dieses Mitglied aus der Familie entfernen?"
+  },
+  "notFound": {
+    "title": "Hier gibt es nichts zu essen",
+    "text": "Diese Seite oder dieses Rezept gibt es nicht (mehr).",
+    "back": "Zu den Rezepten"
   }
 }

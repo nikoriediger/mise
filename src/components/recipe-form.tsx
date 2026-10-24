@@ -249,7 +249,7 @@ export function RecipeForm({ familyId, cookbooks, initialCollectionIds, recipe, 
             })}
           </div>
         </div>
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-3 items-end gap-3">
           <NumberField id="servings" label={t.form.servings} value={fields.servings} onChange={set("servings")} />
           <NumberField id="prep_minutes" label={t.form.prepMinutes} value={fields.prep_minutes} onChange={set("prep_minutes")} />
           <NumberField id="cook_minutes" label={t.form.cookMinutes} value={fields.cook_minutes} onChange={set("cook_minutes")} />

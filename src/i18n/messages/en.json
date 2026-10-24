@@ -28,7 +28,11 @@
     "de": "Deutsch",
     "en": "English",
     "it": "Italiano",
-    "short": { "de": "DE", "en": "EN", "it": "IT" }
+    "short": {
+      "de": "DE",
+      "en": "EN",
+      "it": "IT"
+    }
   },
   "auth": {
     "signIn": "Sign in",
@@ -49,7 +53,10 @@
   },
   "recipes": {
     "title": "Recipes",
-    "count": { "one": "{n} recipe", "other": "{n} recipes" },
+    "count": {
+      "one": "{n} recipe",
+      "other": "{n} recipes"
+    },
     "empty": "No recipes yet.",
     "emptyCta": "Add your first recipe",
     "search": "Search recipes…",
@@ -59,7 +66,10 @@
     "allLanguages": "All languages",
     "language": "Language",
     "servings": "Servings",
-    "servingsCount": { "one": "{n} serving", "other": "{n} servings" },
+    "servingsCount": {
+      "one": "{n} serving",
+      "other": "{n} servings"
+    },
     "prepTime": "Prep time",
     "cookTime": "Cook time",
     "ingredients": "Ingredients",
@@ -148,7 +158,10 @@
     "addRecipes": "Add recipes",
     "addRecipesTitle": "Add recipes to “{name}”",
     "add": "Add",
-    "addSelected": { "one": "Add {n}", "other": "Add {n}" },
+    "addSelected": {
+      "one": "Add {n}",
+      "other": "Add {n}"
+    },
     "pickerEmpty": "All recipes are already in this cookbook.",
     "newRecipe": "New recipe",
     "readOnly": "This is {name}'s cookbook. You can read and copy recipes, but only {name} can change them."
@@ -219,5 +232,10 @@
     "revoke": "Revoke",
     "removeMember": "Remove",
     "removeConfirm": "Remove this member from the family?"
+  },
+  "notFound": {
+    "title": "Nothing cooking here",
+    "text": "This page or recipe doesn't exist (anymore).",
+    "back": "Back to recipes"
   }
 }

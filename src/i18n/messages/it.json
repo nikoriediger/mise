@@ -28,7 +28,11 @@
     "de": "Deutsch",
     "en": "English",
     "it": "Italiano",
-    "short": { "de": "DE", "en": "EN", "it": "IT" }
+    "short": {
+      "de": "DE",
+      "en": "EN",
+      "it": "IT"
+    }
   },
   "auth": {
     "signIn": "Accedi",
@@ -49,7 +53,10 @@
   },
   "recipes": {
     "title": "Ricette",
-    "count": { "one": "{n} ricetta", "other": "{n} ricette" },
+    "count": {
+      "one": "{n} ricetta",
+      "other": "{n} ricette"
+    },
     "empty": "Ancora nessuna ricetta.",
     "emptyCta": "Aggiungi la tua prima ricetta",
     "search": "Cerca ricette…",
@@ -59,7 +66,10 @@
     "allLanguages": "Tutte le lingue",
     "language": "Lingua",
     "servings": "Porzioni",
-    "servingsCount": { "one": "{n} porzione", "other": "{n} porzioni" },
+    "servingsCount": {
+      "one": "{n} porzione",
+      "other": "{n} porzioni"
+    },
     "prepTime": "Preparazione",
     "cookTime": "Cottura",
     "ingredients": "Ingredienti",
@@ -148,7 +158,10 @@
     "addRecipes": "Aggiungi ricette",
     "addRecipesTitle": "Aggiungi ricette a “{name}”",
     "add": "Aggiungi",
-    "addSelected": { "one": "Aggiungi {n}", "other": "Aggiungi {n}" },
+    "addSelected": {
+      "one": "Aggiungi {n}",
+      "other": "Aggiungi {n}"
+    },
     "pickerEmpty": "Tutte le ricette sono già in questo ricettario.",
     "newRecipe": "Nuova ricetta",
     "readOnly": "Questo è il ricettario di {name}. Puoi leggere e copiare le ricette, ma solo {name} può modificarle."
@@ -219,5 +232,10 @@
     "revoke": "Revoca",
     "removeMember": "Rimuovi",
     "removeConfirm": "Rimuovere questo membro dalla famiglia?"
+  },
+  "notFound": {
+    "title": "Qui non c'è niente in pentola",
+    "text": "Questa pagina o questa ricetta non esiste (più).",
+    "back": "Torna alle ricette"
   }
 }
