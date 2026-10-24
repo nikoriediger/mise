@@ -27,5 +27,7 @@ async function NewRecipe({ searchParams }: Pick<PageProps<"/recipes/new">, "sear
     return { id: r.id, title: r.title, cookbook: book ? `${book.emoji} ${book.name}` : "" };
   });
 
-  return <RecipeForm cookbooks={mine} initialCookbookId={initial.id} existing={existing} />;
+  // A fresh id per visit: after saving, the next visit starts with an empty form.
+  const draftId = crypto.randomUUID();
+  return <RecipeForm key={draftId} draftId={draftId} cookbooks={mine} initialCookbookId={initial.id} existing={existing} />;
 }
