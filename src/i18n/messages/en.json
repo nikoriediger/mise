@@ -21,7 +21,9 @@
     "family": "Family",
     "signOut": "Sign out",
     "more": "More",
-    "menu": "Menu"
+    "menu": "Menu",
+    "shopping": "Shopping",
+    "plan": "Meal plan"
   },
   "lang": {
     "title": "Language",
@@ -333,5 +335,53 @@
     "resume": "Resume",
     "cancel": "Stop timer",
     "running": "running"
+  },
+  "shopping": {
+    "title": "Shopping list",
+    "mine": "My list",
+    "family": "Family list",
+    "addPlaceholder": "Add something, e.g. milk",
+    "add": "Add",
+    "empty": "The list is empty.",
+    "done": "Done",
+    "clearDone": "Remove done items",
+    "share": "Share list",
+    "copied": "List copied ✓",
+    "from": "for {titles}",
+    "addFromRecipe": "Add to shopping list",
+    "dialogTitle": "What do you need?",
+    "dialogHint": "Untick what you already have at home.",
+    "which": "Which list?",
+    "added": {
+      "one": "{n} ingredient added ✓",
+      "other": "{n} ingredients added ✓"
+    },
+    "open": "Open shopping list",
+    "remove": "Remove"
+  },
+  "plan": {
+    "title": "Meal plan",
+    "thisWeek": "This week",
+    "prev": "Previous week",
+    "next": "Next week",
+    "today": "Today",
+    "addRecipe": "Plan a recipe",
+    "pickRecipe": "Which recipe?",
+    "shoppingForWeek": "Add this week's ingredients to the shopping list",
+    "planButton": "Plan",
+    "pickDay": "Which day?",
+    "planned": "Planned for {date} ✓",
+    "remove": "Remove from plan",
+    "open": "Open meal plan",
+    "nothing": "Nothing planned for this week yet."
+  },
+  "book": {
+    "pdf": "PDF / Print",
+    "printNow": "Print / Save as PDF",
+    "printHint": "Tip: choose “Save as PDF” as the printer in the print dialog.",
+    "contents": "Contents",
+    "by": "by {name}",
+    "printedOn": "As of {date}",
+    "back": "Back to cookbook"
   }
 }

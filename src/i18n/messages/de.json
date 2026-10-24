@@ -21,7 +21,9 @@
     "family": "Familie",
     "signOut": "Abmelden",
     "more": "Mehr",
-    "menu": "Menü"
+    "menu": "Menü",
+    "shopping": "Einkauf",
+    "plan": "Wochenplan"
   },
   "lang": {
     "title": "Sprache",
@@ -333,5 +335,53 @@
     "resume": "Weiter",
     "cancel": "Timer beenden",
     "running": "läuft"
+  },
+  "shopping": {
+    "title": "Einkaufsliste",
+    "mine": "Meine Liste",
+    "family": "Familienliste",
+    "addPlaceholder": "Etwas hinzufügen, z. B. Milch",
+    "add": "Hinzufügen",
+    "empty": "Die Liste ist leer.",
+    "done": "Erledigt",
+    "clearDone": "Erledigte entfernen",
+    "share": "Liste teilen",
+    "copied": "Liste kopiert ✓",
+    "from": "für {titles}",
+    "addFromRecipe": "Auf die Einkaufsliste",
+    "dialogTitle": "Was brauchst du?",
+    "dialogHint": "Nimm raus, was du schon zu Hause hast.",
+    "which": "Auf welche Liste?",
+    "added": {
+      "one": "{n} Zutat hinzugefügt ✓",
+      "other": "{n} Zutaten hinzugefügt ✓"
+    },
+    "open": "Zur Einkaufsliste",
+    "remove": "Entfernen"
+  },
+  "plan": {
+    "title": "Wochenplan",
+    "thisWeek": "Diese Woche",
+    "prev": "Vorherige Woche",
+    "next": "Nächste Woche",
+    "today": "Heute",
+    "addRecipe": "Rezept planen",
+    "pickRecipe": "Welches Rezept?",
+    "shoppingForWeek": "Zutaten der Woche auf die Einkaufsliste",
+    "planButton": "Planen",
+    "pickDay": "An welchem Tag?",
+    "planned": "Geplant für {date} ✓",
+    "remove": "Aus dem Plan entfernen",
+    "open": "Zum Wochenplan",
+    "nothing": "Für diese Woche ist noch nichts geplant."
+  },
+  "book": {
+    "pdf": "Als PDF / Drucken",
+    "printNow": "Drucken / Als PDF speichern",
+    "printHint": "Tipp: Wähle im Druckdialog „Als PDF speichern“ als Drucker.",
+    "contents": "Inhalt",
+    "by": "von {name}",
+    "printedOn": "Stand: {date}",
+    "back": "Zurück zum Kochbuch"
   }
 }

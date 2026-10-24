@@ -16,6 +16,7 @@ import { FamilyNotes } from "@/components/family-notes";
 import { ImageGallery } from "@/components/image-gallery";
 import { Loading } from "@/components/loading";
 import { PrintButton, ShareButton } from "@/components/recipe-actions";
+import { AddToShoppingButton, PlanRecipeButton } from "@/components/recipe-plan-shop";
 import { IngredientsCard, ScaleProvider } from "@/components/recipe-scale";
 import { getCookLog, getMyCookbooks, getRecipe, getRecipeNotes } from "@/lib/data";
 import { appName } from "@/i18n/config";
@@ -53,6 +54,8 @@ async function RecipeDetail({ params }: Pick<PageProps<"/[lang]/recipes/[id]">, 
   const basics = { title: recipe.title, ingredients: recipe.ingredients, steps: recipe.steps, servings: recipe.servings };
   const secondaryActions = (
     <>
+      <AddToShoppingButton recipeTitle={recipe.title} />
+      <PlanRecipeButton recipeId={recipe.id} />
       <CookbookMembershipButton recipeId={recipe.id} isMine={recipe.canEdit} cookbooks={ownBooks} selected={myCollectionsWithRecipe} />
       {recipe.canEdit ? (
         <>

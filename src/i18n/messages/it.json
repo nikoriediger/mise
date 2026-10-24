@@ -21,7 +21,9 @@
     "family": "Famiglia",
     "signOut": "Esci",
     "more": "Altro",
-    "menu": "Menu"
+    "menu": "Menu",
+    "shopping": "Spesa",
+    "plan": "Piano settimanale"
   },
   "lang": {
     "title": "Lingua",
@@ -333,5 +335,53 @@
     "resume": "Riprendi",
     "cancel": "Ferma timer",
     "running": "in corso"
+  },
+  "shopping": {
+    "title": "Lista della spesa",
+    "mine": "La mia lista",
+    "family": "Lista di famiglia",
+    "addPlaceholder": "Aggiungi qualcosa, es. latte",
+    "add": "Aggiungi",
+    "empty": "La lista è vuota.",
+    "done": "Fatto",
+    "clearDone": "Rimuovi completati",
+    "share": "Condividi lista",
+    "copied": "Lista copiata ✓",
+    "from": "per {titles}",
+    "addFromRecipe": "Aggiungi alla lista della spesa",
+    "dialogTitle": "Cosa ti serve?",
+    "dialogHint": "Togli quello che hai già in casa.",
+    "which": "Su quale lista?",
+    "added": {
+      "one": "{n} ingrediente aggiunto ✓",
+      "other": "{n} ingredienti aggiunti ✓"
+    },
+    "open": "Vai alla lista della spesa",
+    "remove": "Rimuovi"
+  },
+  "plan": {
+    "title": "Piano settimanale",
+    "thisWeek": "Questa settimana",
+    "prev": "Settimana precedente",
+    "next": "Settimana successiva",
+    "today": "Oggi",
+    "addRecipe": "Pianifica una ricetta",
+    "pickRecipe": "Quale ricetta?",
+    "shoppingForWeek": "Aggiungi gli ingredienti della settimana alla lista",
+    "planButton": "Pianifica",
+    "pickDay": "In quale giorno?",
+    "planned": "Pianificata per il {date} ✓",
+    "remove": "Rimuovi dal piano",
+    "open": "Vai al piano settimanale",
+    "nothing": "Per questa settimana non c'è ancora niente in programma."
+  },
+  "book": {
+    "pdf": "PDF / Stampa",
+    "printNow": "Stampa / Salva come PDF",
+    "printHint": "Suggerimento: nella finestra di stampa scegli “Salva come PDF”.",
+    "contents": "Indice",
+    "by": "di {name}",
+    "printedOn": "Aggiornato al {date}",
+    "back": "Torna al ricettario"
   }
 }

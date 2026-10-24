@@ -48,6 +48,9 @@ async function CookbookDetail({ params }: Pick<PageProps<"/[lang]/cookbooks/[id]
               .join(" · ")}
           </p>
         </div>
+        {recipes.length > 0 && (
+          <Link href={`/cookbooks/${cookbook.id}/print`} className="btn-secondary">📖 {t.book.pdf}</Link>
+        )}
         {cookbook.is_mine && (
           <div className="flex flex-wrap gap-2">
             <EditCookbookButton cookbook={cookbook} />

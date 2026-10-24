@@ -324,7 +324,7 @@ export function RecipeForm({ familyId, cookbooks, initialCollectionIds, recipe, 
 
       {error && <p className="text-sm text-red-700">{error}</p>}
 
-      <div className="glass sticky bottom-[calc(5.75rem+env(safe-area-inset-bottom))] z-20 flex gap-3 rounded-2xl px-4 py-3 shadow-lifted md:bottom-3 [&>*]:min-h-11 [&>*]:flex-1 sm:[&>*]:flex-none">
+      <div className="glass sticky bottom-[calc(5.75rem+env(safe-area-inset-bottom))] z-20 flex gap-3 rounded-2xl px-4 py-3 shadow-lifted lg:bottom-3 [&>*]:min-h-11 [&>*]:flex-1 sm:[&>*]:flex-none">
         <button className="btn-primary" disabled={pending}>{pending ? t.common.saving : t.common.save}</button>
         <Link href={recipe ? `/recipes/${recipe.id}` : "/"} className="btn-secondary">{t.common.cancel}</Link>
       </div>

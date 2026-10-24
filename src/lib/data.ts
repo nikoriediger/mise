@@ -291,6 +291,103 @@ export async function getRecipeNotes(recipe: Pick<RecipeWithImages, "id" | "fami
   }));
 }
 
+export type BookRecipe = Recipe & { coverUrl: string | null };
+
+/** All recipes of a cookbook with their full content, for the printable book. */
+export async function getCookbookRecipesFull(cookbookId: string): Promise<BookRecipe[]> {
+  const { cookbooks, membership } = await getLibrary();
+  const book = cookbooks.find((b) => b.id === cookbookId);
+  if (!book) return [];
+  const supabase = await createClient();
+  let query = supabase.from("recipes").select("*, recipe_images(storage_path, role, is_cover, sort_order)").order("title");
+  query = book.is_default
+    ? query.eq("owner_id", book.owner_id).eq("family_id", book.family_id)
+    : query.in("id", [...membership].filter(([, ids]) => ids.includes(book.id)).map(([id]) => id));
+  const { data, error } = await query;
+  if (error) throw error;
+
+  type Row = Recipe & { recipe_images: { storage_path: string; role: string; is_cover: boolean; sort_order: number }[] };
+  const rows = data as Row[];
+  const covers = new Map<string, string>();
+  for (const r of rows) {
+    const img = r.recipe_images.filter((i) => i.role === "gallery").sort((a, b) => Number(b.is_cover) - Number(a.is_cover) || a.sort_order - b.sort_order)[0];
+    if (img) covers.set(r.id, img.storage_path);
+  }
+  const urls = await signUrls([...covers.values()]);
+  return rows.map((row) => {
+    const recipe: Partial<Row> = { ...row };
+    delete recipe.recipe_images;
+    return { ...(recipe as Recipe), coverUrl: urls.get(covers.get(row.id) ?? "") ?? null };
+  });
+}
+
+export type ShoppingItem = {
+  id: string;
+  name: string;
+  amount: number | null;
+  unit: string | null;
+  sources: string[];
+  checked: boolean;
+  list: "mine" | "family";
+};
+
+/** Items of the user's personal list and the family list. */
+export async function listShoppingItems(): Promise<ShoppingItem[]> {
+  const user = await getCurrentUser();
+  const family = await getPrimaryFamily();
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("shopping_items")
+    .select("id, name, amount, unit, sources, checked, owner_id")
+    .eq("family_id", family.family_id)
+    .order("created_at");
+  if (error) throw error;
+  return data.map((i) => ({
+    id: i.id,
+    name: i.name,
+    amount: i.amount === null ? null : Number(i.amount),
+    unit: i.unit,
+    sources: i.sources,
+    checked: i.checked,
+    list: i.owner_id === user.id ? "mine" : "family",
+  }));
+}
+
+export type PlannedMeal = {
+  id: string;
+  planned_on: string;
+  servings: number | null;
+  recipe: { id: string; title: string; servings: number | null; coverUrl: string | null };
+};
+
+/** The user's meal plan between two days (inclusive). */
+export async function listMealPlan(from: string, to: string): Promise<PlannedMeal[]> {
+  const user = await getCurrentUser();
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("meal_plan")
+    .select("id, planned_on, servings, recipes(id, title, servings, recipe_images(storage_path, role, is_cover, sort_order))")
+    .eq("user_id", user.id)
+    .gte("planned_on", from)
+    .lte("planned_on", to)
+    .order("created_at");
+  if (error) throw error;
+
+  type Row = { id: string; title: string; servings: number | null; recipe_images: { storage_path: string; role: string; is_cover: boolean; sort_order: number }[] };
+  const covers = new Map<string, string>();
+  for (const entry of data) {
+    const r = entry.recipes as unknown as Row | null;
+    const img = r?.recipe_images.filter((i) => i.role === "gallery").sort((a, b) => Number(b.is_cover) - Number(a.is_cover) || a.sort_order - b.sort_order)[0];
+    if (r && img) covers.set(r.id, img.storage_path);
+  }
+  const urls = await signUrls([...covers.values()]);
+  return data.flatMap((entry) => {
+    const r = entry.recipes as unknown as Row | null;
+    if (!r) return [];
+    return [{ id: entry.id, planned_on: entry.planned_on, servings: entry.servings, recipe: { id: r.id, title: r.title, servings: r.servings, coverUrl: urls.get(covers.get(r.id) ?? "") ?? null } }];
+  });
+}
+
 export type CookLogEntry = {
   id: string;
   cooked_on: string;

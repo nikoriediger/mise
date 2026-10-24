@@ -15,6 +15,8 @@ import { appName } from "@/i18n/config";
 const links = [
   { href: "/", key: "recipes", icon: "🍽", match: (p: string) => p === "/" || (p.startsWith("/recipes/") && p !== "/recipes/new") },
   { href: "/cookbooks", key: "cookbooks", icon: "📚", match: (p: string) => p.startsWith("/cookbooks") },
+  { href: "/shopping", key: "shopping", icon: "🛒", match: (p: string) => p.startsWith("/shopping") },
+  { href: "/plan", key: "plan", icon: "📅", match: (p: string) => p.startsWith("/plan") },
   { href: "/family", key: "family", icon: "👨‍👩‍👧", match: (p: string) => p.startsWith("/family") },
 ] as const;
 
@@ -97,7 +99,7 @@ function BottomTabs({ pathname, profile }: { pathname: string | null; profile?: 
     <>
       <nav
         aria-label={t.nav.menu}
-        className="glass fixed inset-x-2 bottom-[max(0.5rem,env(safe-area-inset-bottom))] z-40 flex items-center gap-1 rounded-3xl px-1.5 py-1 shadow-lifted md:hidden print:hidden"
+        className="glass fixed inset-x-2 bottom-[max(0.5rem,env(safe-area-inset-bottom))] z-40 flex items-center gap-1 rounded-3xl px-1.5 py-1 shadow-lifted lg:hidden print:hidden"
       >
         {tab(links[0])}
         {tab(links[1])}
@@ -139,6 +141,20 @@ function BottomTabs({ pathname, profile }: { pathname: string | null; profile?: 
               <span aria-hidden className="text-muted">›</span>
             </Link>
           )}
+          <div className="grid gap-2">
+            {[links[3], links[4]].map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                onClick={() => setMoreOpen(false)}
+                className="flex min-h-14 items-center gap-3 rounded-2xl border border-line bg-cream px-4 text-base text-forest-900 transition-colors hover:bg-sage-50"
+              >
+                <span className="text-xl" aria-hidden>{link.icon}</span>
+                <span className="flex-1">{t.nav[link.key]}</span>
+                <span aria-hidden className="text-muted">›</span>
+              </Link>
+            ))}
+          </div>
           <section>
             <h2 className="mb-3 font-serif text-xl font-semibold text-forest-900">{t.lang.title}</h2>
             <LanguageList />

@@ -220,6 +220,25 @@ await as(A, async () => {
 });
 
 // ---------------------------------------------------------------------------
+// Shopping lists and meal plan
+// ---------------------------------------------------------------------------
+await as(B, async () => {
+  ok(!(await tryQ(`insert into public.shopping_items (family_id, owner_id, name, merge_key) values ($1, $2, 'Mehl', 'mehl|g')`, [fam, B])).error, "Niko can use his personal shopping list");
+  ok(!(await tryQ(`insert into public.shopping_items (family_id, owner_id, name, merge_key) values ($1, null, 'Milch', 'milch|')`, [fam])).error, "Niko can add to the family shopping list");
+  ok(Boolean((await tryQ(`insert into public.shopping_items (family_id, owner_id, name, merge_key) values ($1, $2, 'x', 'x|')`, [fam, A])).error), "Niko cannot write on Papa's personal list");
+  ok(!(await tryQ(`insert into public.meal_plan (user_id, recipe_id, planned_on) values ($1, $2, '2026-11-02')`, [B, rPapa])).error, "Niko can plan Papa's recipe");
+});
+await as(A, async () => {
+  const visible = (await rows(`select name from public.shopping_items order by name`)).map((r) => r.name);
+  ok(visible.length === 1 && visible[0] === "Milch", "Papa sees the family list but not Niko's personal list");
+  ok((await rows(`update public.shopping_items set checked = true where name = 'Milch' returning id`)).length === 1, "everyone can tick off items on the family list");
+  ok((await rows(`select id from public.meal_plan`)).length === 0, "meal plans are personal");
+});
+await as("00000000-0000-0000-0000-00000000000f", async () => {
+  ok((await rows(`select id from public.shopping_items`)).length === 0, "outsiders see no shopping lists");
+});
+
+// ---------------------------------------------------------------------------
 // Outsider
 // ---------------------------------------------------------------------------
 const STRANGER = "00000000-0000-0000-0000-00000000000f";

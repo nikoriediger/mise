@@ -17,6 +17,14 @@ export function PrintButton() {
   );
 }
 
+export function PrintNowButton({ label }: { label: string }) {
+  return (
+    <button type="button" className="btn-primary min-h-11 print:hidden" onClick={() => window.print()}>
+      🖨 {label}
+    </button>
+  );
+}
+
 type ShareProps = {
   coverUrl: string | null;
   facts: string[];

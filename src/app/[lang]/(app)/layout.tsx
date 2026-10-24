@@ -20,7 +20,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
             </span>
             <span className="truncate">{appName}</span>
           </Link>
-          <nav className="hidden items-center gap-2 md:flex">
+          <nav className="hidden items-center gap-2 lg:flex">
             <NavLinks />
             <LanguageToggle />
             <form action={signOut}>
@@ -38,7 +38,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           </Suspense>
         </div>
       </header>
-      <main className="mx-auto w-full max-w-5xl flex-1 px-4 pb-32 pt-6 md:pb-10 md:pt-8 print:p-0">{children}</main>
+      <main className="mx-auto w-full max-w-5xl flex-1 px-4 pb-32 pt-6 lg:pb-10 lg:pt-8 print:p-0">{children}</main>
       <Suspense fallback={<BottomNav />}>
         <BottomNavWithProfile />
       </Suspense>
