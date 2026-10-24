@@ -223,7 +223,9 @@
     "badge": "Premium",
     "scanTitle": "Rezepte per KI scannen",
     "scanText": "Fotografiere eine handgeschriebene Karte oder Kochbuchseite – das Formular füllt sich von selbst. Bald als Premium-Funktion.",
-    "soon": "Bald verfügbar"
+    "soon": "Bald verfügbar",
+    "dictateTitle": "Rezept diktieren",
+    "dictateText": "Erzähl das Rezept einfach – die KI macht daraus ein sauberes Rezept samt Geschichte."
   },
   "family": {
     "title": "Familie",
@@ -449,5 +451,12 @@
     "vegan": "Vegan",
     "gluten_free": "Glutenfrei",
     "lactose_free": "Laktosefrei"
+  },
+  "dictation": {
+    "start": "Diktieren",
+    "stop": "Diktat beenden",
+    "listening": "Ich höre zu… sprich einfach los.",
+    "denied": "Das Mikrofon ist blockiert. Erlaube den Zugriff in den Browser-Einstellungen.",
+    "failed": "Die Spracherkennung hat nicht geklappt. Bitte versuche es erneut."
   }
 }

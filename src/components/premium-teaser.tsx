@@ -17,6 +17,9 @@ export function PremiumScanTeaser() {
             </span>
           </div>
           <p className="mt-1 text-sm text-muted">{t.premium.scanText}</p>
+          <p className="mt-2 text-sm text-muted">
+            <span className="font-medium text-forest-900">🎙 {t.premium.dictateTitle}</span> – {t.premium.dictateText}
+          </p>
           <button type="button" disabled className="btn-secondary mt-3">
             {t.premium.soon}
           </button>

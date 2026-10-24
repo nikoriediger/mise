@@ -3,6 +3,7 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { useState, useTransition } from "react";
 import { addNote, deleteNote, updateNote } from "@/app/actions/notes";
+import { DictationField } from "@/components/dictation-field";
 import { PersonLink } from "@/components/person-link";
 import { ConfirmDialog } from "@/components/dialog";
 import { spring } from "@/components/motion";
@@ -55,13 +56,15 @@ export function FamilyNotes({ recipeId, notes }: { recipeId: string; notes: Reci
           });
         }}
       >
-        <textarea
-          className="input min-h-20 bg-white/70 [field-sizing:content]"
-          value={draft}
-          maxLength={2000}
-          placeholder={t.notes.placeholder}
-          onChange={(e) => setDraft(e.target.value)}
-        />
+        <DictationField value={draft} onChange={(text) => setDraft(text.slice(0, 2000))}>
+          <textarea
+            className="input min-h-20 bg-white/70 pr-14 [field-sizing:content]"
+            value={draft}
+            maxLength={2000}
+            placeholder={t.notes.placeholder}
+            onChange={(e) => setDraft(e.target.value)}
+          />
+        </DictationField>
         {error && <p className="mt-2 text-sm text-red-700">{error}</p>}
         <div className="mt-3 flex justify-end">
           <button className="btn-primary" disabled={pending || !draft.trim()}>

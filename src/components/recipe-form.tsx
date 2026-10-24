@@ -5,6 +5,7 @@ import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
 import { useRef, useState } from "react";
 import { saveRecipe, type ImageState } from "@/app/actions/recipes";
+import { DictationField } from "@/components/dictation-field";
 import { spring } from "@/components/motion";
 import { PremiumScanTeaser } from "@/components/premium-teaser";
 import { CategoryPicker, DietPicker, TagInput } from "@/components/taxonomy-fields";
@@ -280,15 +281,19 @@ export function RecipeForm({ familyId, cookbooks, initialCollectionIds, recipe, 
 
       <section className="card p-5 sm:p-6">
         <label className="label" htmlFor="ingredients">{t.form.ingredients}</label>
-        <textarea id="ingredients" className="input min-h-48 [field-sizing:content]" value={fields.ingredients} onChange={set("ingredients")} />
+        <DictationField value={fields.ingredients} onChange={(ingredients) => setFields((f) => ({ ...f, ingredients }))} lang={fields.language} mode="lines">
+          <textarea id="ingredients" className="input min-h-48 pr-14 [field-sizing:content]" value={fields.ingredients} onChange={set("ingredients")} />
+        </DictationField>
         <p className="hint">{t.form.ingredientsHint}</p>
       </section>
 
-      <StepsEditor steps={steps} onChange={setSteps} />
+      <StepsEditor steps={steps} onChange={setSteps} lang={fields.language} />
 
       <section className="card p-5 sm:p-6">
         <label className="label" htmlFor="notes">{t.form.notes}</label>
-        <textarea id="notes" className="input min-h-24 [field-sizing:content]" value={fields.notes} onChange={set("notes")} />
+        <DictationField value={fields.notes} onChange={(notes) => setFields((f) => ({ ...f, notes }))} lang={fields.language}>
+          <textarea id="notes" className="input min-h-24 pr-14 [field-sizing:content]" value={fields.notes} onChange={set("notes")} />
+        </DictationField>
       </section>
 
       <ImageSection
@@ -318,7 +323,9 @@ export function RecipeForm({ familyId, cookbooks, initialCollectionIds, recipe, 
         </div>
         <div>
           <label className="label" htmlFor="story">{t.story.story}</label>
-          <textarea id="story" className="input min-h-28 [field-sizing:content]" maxLength={5000} value={fields.story} onChange={set("story")} placeholder={t.story.storyPlaceholder} />
+          <DictationField value={fields.story} onChange={(story) => setFields((f) => ({ ...f, story: story.slice(0, 5000) }))} lang={fields.language}>
+            <textarea id="story" className="input min-h-28 pr-14 [field-sizing:content]" maxLength={5000} value={fields.story} onChange={set("story")} placeholder={t.story.storyPlaceholder} />
+          </DictationField>
         </div>
       </section>
       <ImageSection
@@ -381,7 +388,7 @@ function normalize(s: string) {
   return s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9ß]+/g, " ").trim();
 }
 
-function StepsEditor({ steps, onChange }: { steps: Step[]; onChange: (steps: Step[]) => void }) {
+function StepsEditor({ steps, onChange, lang }: { steps: Step[]; onChange: (steps: Step[]) => void; lang: Locale | null }) {
   const { t, f } = useI18n();
   const update = (key: string, text: string) => onChange(steps.map((s) => (s.key === key ? { ...s, text } : s)));
   const remove = (key: string) => onChange(steps.filter((s) => s.key !== key));
@@ -411,13 +418,15 @@ function StepsEditor({ steps, onChange }: { steps: Step[]; onChange: (steps: Ste
               </span>
               <div className="min-w-0 flex-1">
                 <p className="mb-1 text-xs font-semibold uppercase tracking-[0.14em] text-moss-600">{f(t.recipes.step, { n: i + 1 })}</p>
-                <textarea
-                  className="input min-h-20 [field-sizing:content]"
-                  value={step.text}
-                  placeholder={t.form.stepPlaceholder}
-                  aria-label={f(t.recipes.step, { n: i + 1 })}
-                  onChange={(e) => update(step.key, e.target.value)}
-                />
+                <DictationField value={step.text} onChange={(text) => update(step.key, text)} lang={lang}>
+                  <textarea
+                    className="input min-h-20 pr-14 [field-sizing:content]"
+                    value={step.text}
+                    placeholder={t.form.stepPlaceholder}
+                    aria-label={f(t.recipes.step, { n: i + 1 })}
+                    onChange={(e) => update(step.key, e.target.value)}
+                  />
+                </DictationField>
               </div>
               <div className="flex shrink-0 flex-col gap-1">
                 <IconButton label={t.form.moveUp} disabled={i === 0} onClick={() => move(i, i - 1)}>↑</IconButton>

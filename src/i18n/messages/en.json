@@ -223,7 +223,9 @@
     "badge": "Premium",
     "scanTitle": "Scan recipes with AI",
     "scanText": "Take a photo of a handwritten card or cookbook page – the form fills itself. Coming soon as a premium feature.",
-    "soon": "Coming soon"
+    "soon": "Coming soon",
+    "dictateTitle": "Dictate a recipe",
+    "dictateText": "Just tell the recipe – the AI turns it into a clean recipe, story included."
   },
   "family": {
     "title": "Family",
@@ -449,5 +451,12 @@
     "vegan": "Vegan",
     "gluten_free": "Gluten-free",
     "lactose_free": "Lactose-free"
+  },
+  "dictation": {
+    "start": "Dictate",
+    "stop": "Stop dictating",
+    "listening": "Listening… just start talking.",
+    "denied": "The microphone is blocked. Allow access in your browser settings.",
+    "failed": "Speech recognition didn't work. Please try again."
   }
 }

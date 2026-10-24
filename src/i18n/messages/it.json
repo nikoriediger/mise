@@ -223,7 +223,9 @@
     "badge": "Premium",
     "scanTitle": "Scansiona ricette con l'IA",
     "scanText": "Fotografa una scheda scritta a mano o la pagina di un libro di cucina – il modulo si compila da solo. Presto disponibile come funzione premium.",
-    "soon": "Presto disponibile"
+    "soon": "Presto disponibile",
+    "dictateTitle": "Detta una ricetta",
+    "dictateText": "Racconta la ricetta – l'IA la trasforma in una ricetta ordinata, storia compresa."
   },
   "family": {
     "title": "Famiglia",
@@ -449,5 +451,12 @@
     "vegan": "Vegano",
     "gluten_free": "Senza glutine",
     "lactose_free": "Senza lattosio"
+  },
+  "dictation": {
+    "start": "Detta",
+    "stop": "Termina dettatura",
+    "listening": "Ti ascolto… inizia pure a parlare.",
+    "denied": "Il microfono è bloccato. Consenti l'accesso nelle impostazioni del browser.",
+    "failed": "Il riconoscimento vocale non ha funzionato. Riprova."
   }
 }
