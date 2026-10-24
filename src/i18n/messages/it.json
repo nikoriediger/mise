@@ -286,5 +286,52 @@
   },
   "offline": {
     "banner": "Offline – le ricette viste di recente sono disponibili"
+  },
+  "favorites": {
+    "add": "Aggiungi ai preferiti",
+    "remove": "Rimuovi dai preferiti",
+    "filter": "❤️ Preferiti",
+    "recentlyCooked": "🍳 Cucinate di recente",
+    "none": "Ancora nessun preferito. Tocca il ♡ su una ricetta."
+  },
+  "story": {
+    "title": "Origine e storia",
+    "origin": "Origine",
+    "originPlaceholder": "es. Da nonna Anna, verso il 1965",
+    "story": "Storia e ricordi",
+    "storyPlaceholder": "Quando si mangiava questa ricetta? Chi l'ha inventata? Cosa vi ricorda?",
+    "memories": "Foto ricordo",
+    "addMemories": "Aggiungi foto"
+  },
+  "cookLog": {
+    "title": "Diario di cucina",
+    "cookedToday": "Cucinato oggi",
+    "dialogTitle": "Com'è venuto?",
+    "date": "Quando?",
+    "rating": "Valutazione",
+    "comment": "Commento",
+    "commentPlaceholder": "es. Con meno zucchero – perfetto!",
+    "photo": "Foto",
+    "addPhoto": "Aggiungi foto",
+    "save": "Salva",
+    "empty": "Nessuno ha ancora cucinato questa ricetta.",
+    "count": {
+      "one": "cucinato {n} volta",
+      "other": "cucinato {n} volte"
+    },
+    "lastCooked": "l'ultima volta il {date}",
+    "deleteConfirm": "Eliminare questa voce?",
+    "stars": {
+      "one": "{n} stella",
+      "other": "{n} stelle"
+    }
+  },
+  "timer": {
+    "start": "Avvia timer: {label}",
+    "done": "Fatto!",
+    "pause": "Pausa",
+    "resume": "Riprendi",
+    "cancel": "Ferma timer",
+    "running": "in corso"
   }
 }

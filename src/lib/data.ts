@@ -59,14 +59,19 @@ export async function getPrimaryFamily(): Promise<FamilyMembership> {
 const getLibrary = cache(async () => {
   const user = await getCurrentUser();
   const supabase = await createClient();
-  const [books, members, recipes, links, profiles] = await Promise.all([
+  const [books, members, recipes, links, profiles, favorites, myCooking] = await Promise.all([
     supabase.from("cookbooks").select("id, family_id, owner_id, name, emoji, is_default, created_at").order("created_at"),
     supabase.from("family_members").select("family_id, user_id, display_name"),
     supabase.from("recipes").select("id, owner_id, family_id"),
     supabase.from("cookbook_recipes").select("cookbook_id, recipe_id"),
     supabase.from("profiles").select("user_id, display_name, avatar_path"),
+    supabase.from("favorites").select("recipe_id"),
+    supabase.from("cook_log").select("recipe_id, cooked_on").eq("user_id", user.id).order("cooked_on", { ascending: false }),
   ]);
-  for (const r of [books, members, recipes, links, profiles]) if (r.error) throw r.error;
+  for (const r of [books, members, recipes, links, profiles, favorites, myCooking]) if (r.error) throw r.error;
+  const favoriteIds = new Set(favorites.data!.map((f) => f.recipe_id));
+  const lastCooked = new Map<string, string>();
+  for (const c of myCooking.data!) if (!lastCooked.has(c.recipe_id)) lastCooked.set(c.recipe_id, c.cooked_on);
 
   const names = new Map(members.data!.map((m) => [`${m.family_id}:${m.user_id}`, m.display_name ?? ""]));
   const profileName = new Map(profiles.data!.map((p) => [p.user_id, p.display_name ?? ""]));
@@ -107,7 +112,7 @@ const getLibrary = cache(async () => {
     // Own cookbooks first (main cookbook first), then the family's
     .sort((a, b) => Number(b.is_mine) - Number(a.is_mine) || Number(b.is_default) - Number(a.is_default));
 
-  return { user, cookbooks, membership, ownerName, avatarOf };
+  return { user, cookbooks, membership, ownerName, avatarOf, favoriteIds, lastCooked };
 });
 
 /** All cookbooks the user can see (their families' cookbooks), own ones first. */
@@ -151,7 +156,7 @@ export async function getCookbooksWithCovers(): Promise<CookbookWithCover[]> {
 
 /** Recipes of all families, or only those in one cookbook. */
 export async function listRecipes(cookbookId?: string): Promise<RecipeListItem[]> {
-  const { user, cookbooks, membership, ownerName, avatarOf } = await getLibrary();
+  const { user, cookbooks, membership, ownerName, avatarOf, favoriteIds, lastCooked } = await getLibrary();
   const supabase = await createClient();
   let query = supabase
     .from("recipes")
@@ -191,6 +196,8 @@ export async function listRecipes(cookbookId?: string): Promise<RecipeListItem[]
     owner_name: ownerName(recipe.family_id, recipe.owner_id),
     owner_avatar: avatarOf(recipe.owner_id),
     is_mine: recipe.owner_id === user.id,
+    is_favorite: favoriteIds.has(recipe.id),
+    last_cooked: lastCooked.get(recipe.id) ?? null,
     cookbook_ids: membership.get(recipe.id) ?? [],
     coverUrl: urls.get(coverPaths.get(recipe.id) ?? "") ?? null,
   }));
@@ -207,7 +214,7 @@ export async function listRecipeTitles(): Promise<{ id: string; title: string; o
 
 export async function getRecipe(id: string): Promise<RecipeWithImages | null> {
   if (!isUuid(id)) return null;
-  const { user, cookbooks, membership, ownerName, avatarOf } = await getLibrary();
+  const { user, cookbooks, membership, ownerName, avatarOf, favoriteIds } = await getLibrary();
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("recipes")
@@ -230,6 +237,7 @@ export async function getRecipe(id: string): Promise<RecipeWithImages | null> {
     owner_name: ownerName(recipe.family_id, recipe.owner_id),
     owner_avatar: avatarOf(recipe.owner_id),
     canEdit: recipe.owner_id === user.id,
+    is_favorite: favoriteIds.has(recipe.id),
     cookbooks: cookbooks.filter((b) => inBooks.includes(b.id)),
   };
 }
@@ -280,6 +288,41 @@ export async function getRecipeNotes(recipe: Pick<RecipeWithImages, "id" | "fami
     edited: new Date(n.updated_at).getTime() - new Date(n.created_at).getTime() > 1000,
     canEdit: n.author_id === user.id,
     canDelete: n.author_id === user.id || recipe.canEdit || isAdmin,
+  }));
+}
+
+export type CookLogEntry = {
+  id: string;
+  cooked_on: string;
+  rating: number | null;
+  comment: string;
+  photo_url: string | null;
+  author_name: string;
+  author_avatar: string | null;
+  canDelete: boolean;
+};
+
+/** The cooking diary of a recipe, newest first. */
+export async function getCookLog(recipe: Pick<RecipeWithImages, "id" | "family_id">): Promise<CookLogEntry[]> {
+  const { user, ownerName, avatarOf } = await getLibrary();
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("cook_log")
+    .select("id, user_id, cooked_on, rating, comment, photo_path")
+    .eq("recipe_id", recipe.id)
+    .order("cooked_on", { ascending: false })
+    .order("created_at", { ascending: false });
+  if (error) throw error;
+  const urls = await signUrls(data.map((e) => e.photo_path).filter((p): p is string => Boolean(p)));
+  return data.map((e) => ({
+    id: e.id,
+    cooked_on: e.cooked_on,
+    rating: e.rating,
+    comment: e.comment,
+    photo_url: e.photo_path ? (urls.get(e.photo_path) ?? null) : null,
+    author_name: ownerName(recipe.family_id, e.user_id),
+    author_avatar: avatarOf(e.user_id),
+    canDelete: e.user_id === user.id,
   }));
 }
 

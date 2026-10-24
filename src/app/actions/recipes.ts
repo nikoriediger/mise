@@ -209,6 +209,8 @@ export async function copyRecipe(sourceId: string): Promise<ActionResult> {
     category: source.category,
     tags: source.tags,
     language: source.language,
+    origin: source.origin,
+    story: source.story,
   });
   if (error) return { error: t.common.error };
 
@@ -264,5 +266,7 @@ function cleanDraft(draft: RecipeDraft): RecipeDraft {
     category: draft.category.trim(),
     tags: [...new Set(lines(draft.tags))],
     language: isLocale(draft.language) ? draft.language : null,
+    origin: (draft.origin ?? "").trim().slice(0, 200),
+    story: (draft.story ?? "").trim().slice(0, 5000),
   };
 }

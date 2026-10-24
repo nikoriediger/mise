@@ -3,6 +3,7 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
+import { StepTimers, TimerProvider } from "@/components/cook-timers";
 import { spring } from "@/components/motion";
 import { ServingsStepper, useScale } from "@/components/recipe-scale";
 import { useI18n } from "@/i18n/client";
@@ -104,6 +105,7 @@ function CookMode({ recipeId, onClose }: { recipeId: string; onClose: () => void
   const allDone = recipe.steps.length > 0 && currentStep === -1;
 
   return (
+    <TimerProvider title={recipe.title}>
     <motion.div
       className="fixed inset-0 z-50 overflow-y-auto bg-sage-50"
       initial={{ opacity: 0, y: 40 }}
@@ -161,6 +163,7 @@ function CookMode({ recipeId, onClose }: { recipeId: string; onClose: () => void
                   current={i === currentStep}
                   number={i + 1}
                   onToggle={() => toggle("steps", i)}
+                  extra={<StepTimers text={step} />}
                 >
                   {step}
                 </CheckItem>
@@ -182,12 +185,13 @@ function CookMode({ recipeId, onClose }: { recipeId: string; onClose: () => void
           </section>
         )}
       </div>
-      <p className="pb-8 text-center text-xs text-muted">{t.view.tapToCheck}</p>
+      <p className="pb-40 text-center text-xs text-muted">{t.view.tapToCheck}</p>
     </motion.div>
+    </TimerProvider>
   );
 }
 
-function CheckItem(props: { done: boolean; current?: boolean; number?: number; onToggle: () => void; children: React.ReactNode }) {
+function CheckItem(props: { done: boolean; current?: boolean; number?: number; onToggle: () => void; children: React.ReactNode; extra?: React.ReactNode }) {
   return (
     <li>
       <motion.button
@@ -221,6 +225,7 @@ function CheckItem(props: { done: boolean; current?: boolean; number?: number; o
           {props.children}
         </span>
       </motion.button>
+      {props.extra}
     </li>
   );
 }

@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useMemo, useState, useTransition } from "react";
 import { removeFromCookbook } from "@/app/actions/recipes";
 import { Avatar } from "@/components/avatar";
+import { FavoriteButton } from "@/components/favorite-button";
 import { spring } from "@/components/motion";
 import { allowedMissing, matchIngredients } from "@/lib/ingredient-search";
 import type { Cookbook, RecipeListItem } from "@/lib/types";
@@ -39,6 +40,7 @@ export function RecipeList({ recipes, cookbooks, standalone = true, removableFro
   const [category, setCategory] = useState<string | null>(null);
   const [cookbookId, setCookbookId] = useState<string | null>(null);
   const [language, setLanguage] = useState<Locale | null>(null);
+  const [quick, setQuick] = useState<"favorites" | "recent" | null>(null);
   const [removed, setRemoved] = useState<string[]>([]);
   const [have, setHave] = useState<string[]>([]);
   const [haveOpen, setHaveOpen] = useState(false);
@@ -53,7 +55,10 @@ export function RecipeList({ recipes, cookbooks, standalone = true, removableFro
   );
 
   const q = query.trim().toLowerCase();
-  const filtered = recipes.filter(
+  const filtered = recipes
+    .filter((r) => (quick === "favorites" ? r.is_favorite : quick === "recent" ? Boolean(r.last_cooked) : true))
+    .sort((a, b) => (quick === "recent" ? (b.last_cooked ?? "").localeCompare(a.last_cooked ?? "") : 0))
+    .filter(
     (r) =>
       !removed.includes(r.id) &&
       (!category || r.category === category) &&
@@ -153,6 +158,18 @@ export function RecipeList({ recipes, cookbooks, standalone = true, removableFro
         )}
       </AnimatePresence>
 
+      {standalone && (
+        <FilterChips
+          layoutId="quick-pill"
+          value={quick}
+          onChange={setQuick}
+          options={[
+            { value: null, label: t.recipes.all },
+            { value: "favorites", label: t.favorites.filter },
+            { value: "recent", label: t.favorites.recentlyCooked },
+          ]}
+        />
+      )}
       {showCookbooks && (
         <FilterChips
           layoutId="cookbook-pill"
@@ -201,9 +218,9 @@ export function RecipeList({ recipes, cookbooks, standalone = true, removableFro
           </div>
         )
       ) : filtered.length === 0 ? (
-        <p className="py-16 text-center text-muted">{t.recipes.noResults}</p>
+        <p className="py-16 text-center text-muted">{quick === "favorites" && !q ? t.favorites.none : t.recipes.noResults}</p>
       ) : (
-        grid(filtered, `${category}-${cookbookId}-${language}-${q}`)
+        grid(filtered, `${category}-${cookbookId}-${language}-${quick}-${q}`)
       )}
     </div>
   );
@@ -281,7 +298,7 @@ function RecipeCard({ recipe, missing, removableFrom, onRemoved }: { recipe: Rec
             )}
           </span>
         </div>
-        <div className="space-y-1.5 p-3.5">
+        <div className="space-y-1.5 p-3.5 pr-12">
           <h2 className="line-clamp-2 font-medium leading-snug text-forest-900">{recipe.title}</h2>
           {!recipe.is_mine && recipe.owner_name && (
             <span className="inline-flex max-w-full items-center gap-1 rounded-full bg-sage-100/90 px-2.5 py-0.5 text-xs font-medium text-forest-800">
@@ -292,6 +309,9 @@ function RecipeCard({ recipe, missing, removableFrom, onRemoved }: { recipe: Rec
           {missing && <p className="text-xs font-medium text-amber-700">{f(t.search.missing, { items: missing.join(", ") })}</p>}
         </div>
       </Link>
+      <span className="absolute bottom-2 right-2">
+        <FavoriteButton recipeId={recipe.id} initial={recipe.is_favorite} compact />
+      </span>
       {removableFrom && (
         <motion.button
           type="button"

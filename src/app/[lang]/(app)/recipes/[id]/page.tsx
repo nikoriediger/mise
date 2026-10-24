@@ -3,7 +3,10 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { ActionsSheet } from "@/components/actions-sheet";
+import { CookLog } from "@/components/cook-log";
 import { CookModeButton } from "@/components/cook-mode";
+import { FavoriteButton } from "@/components/favorite-button";
+import { SaveForOffline } from "@/components/pwa";
 import { Avatar } from "@/components/avatar";
 import { CookbookBadge } from "@/components/cookbook-badge";
 import { CookbookMembershipButton } from "@/components/cookbook-membership-button";
@@ -14,7 +17,7 @@ import { ImageGallery } from "@/components/image-gallery";
 import { Loading } from "@/components/loading";
 import { PrintButton, ShareButton } from "@/components/recipe-actions";
 import { IngredientsCard, ScaleProvider } from "@/components/recipe-scale";
-import { getMyCookbooks, getRecipe, getRecipeNotes } from "@/lib/data";
+import { getCookLog, getMyCookbooks, getRecipe, getRecipeNotes } from "@/lib/data";
 import { appName } from "@/i18n/config";
 import { localeFlags } from "@/i18n/config";
 import { getI18n } from "@/i18n/server";
@@ -32,7 +35,8 @@ async function RecipeDetail({ params }: Pick<PageProps<"/[lang]/recipes/[id]">, 
   const { id } = await params;
   const [recipe, myCookbooks] = await Promise.all([getRecipe(id), getMyCookbooks()]);
   if (!recipe) notFound();
-  const notes = await getRecipeNotes(recipe);
+  const [notes, cookLog] = await Promise.all([getRecipeNotes(recipe), getCookLog(recipe)]);
+  const memories = recipe.images.filter((img) => img.role === "memory");
 
   const ownBooks = myCookbooks.filter((b) => b.family_id === recipe.family_id);
   const myCollectionsWithRecipe = recipe.cookbooks.filter((b) => b.is_mine && !b.is_default).map((b) => b.id);
@@ -70,6 +74,7 @@ async function RecipeDetail({ params }: Pick<PageProps<"/[lang]/recipes/[id]">, 
               <p className="mb-1 text-xs font-semibold uppercase tracking-[0.18em] text-moss-600">{recipe.category}</p>
             )}
             <h1 className="break-words font-serif text-3xl font-semibold leading-tight text-forest-900 sm:text-5xl print:text-3xl">{recipe.title}</h1>
+            {recipe.origin && <p className="mt-2 font-serif text-lg italic text-moss-600">📜 {recipe.origin}</p>}
             {recipe.language && recipe.language !== locale && (
               <p className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-sage-100 px-2.5 py-0.5 text-xs font-medium text-forest-800 print:hidden">
                 {localeFlags[recipe.language]} {t.lang[recipe.language]}
@@ -98,6 +103,7 @@ async function RecipeDetail({ params }: Pick<PageProps<"/[lang]/recipes/[id]">, 
             <PrintButton />
           </div>
           <ShareButton coverUrl={gallery[0]?.url ?? null} facts={times.map((x) => x.value)} />
+          <FavoriteButton recipeId={recipe.id} initial={recipe.is_favorite} />
           <ActionsSheet title={recipe.title}>
             {secondaryActions}
             <PrintButton />
@@ -162,7 +168,22 @@ async function RecipeDetail({ params }: Pick<PageProps<"/[lang]/recipes/[id]">, 
           </div>
         )}
 
+        {(recipe.story || memories.length > 0) && (
+          <section className="space-y-4 rounded-3xl border border-matcha-300/60 bg-gradient-to-br from-cream via-mint-100/40 to-matcha-300/20 p-5 shadow-soft sm:p-7 print:break-inside-avoid print:border print:bg-none print:shadow-none">
+            <h2 className="font-serif text-2xl font-semibold text-forest-900">📜 {t.story.title}</h2>
+            {recipe.story && <p className="whitespace-pre-line font-serif text-lg leading-relaxed text-forest-900">{recipe.story}</p>}
+            {memories.length > 0 && (
+              <div className="print:hidden">
+                <ImageGallery images={memories} variant="scans" />
+              </div>
+            )}
+          </section>
+        )}
+
+        <CookLog recipeId={recipe.id} familyId={recipe.family_id} entries={cookLog} />
+
         <FamilyNotes recipeId={recipe.id} notes={notes} />
+        <SaveForOffline path={`/recipes/${recipe.id}`} />
 
         {sources.length > 0 && (
           <section className="print:hidden">

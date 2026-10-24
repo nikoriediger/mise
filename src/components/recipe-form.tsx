@@ -32,6 +32,8 @@ type Fields = {
   cook_minutes: string;
   ingredients: string;
   notes: string;
+  origin: string;
+  story: string;
   category: string;
   tags: string;
 };
@@ -153,7 +155,7 @@ export function RecipeForm({ familyId, cookbooks, initialCollectionIds, recipe, 
       return;
     }
 
-    const sortOrder = { gallery: 0, source: 0 };
+    const sortOrder = { gallery: 0, source: 0, memory: 0 };
     const imageStates: ImageState[] = uploaded.map((img) => ({
       id: img.id,
       storage_path: img.storage_path!,
@@ -299,6 +301,27 @@ export function RecipeForm({ familyId, cookbooks, initialCollectionIds, recipe, 
         onRemove={removeImage}
       />
 
+      <section className="space-y-4 rounded-2xl border border-matcha-300/60 bg-gradient-to-br from-cream to-mint-100/50 p-5 shadow-soft sm:p-6">
+        <h2 className="font-serif text-xl font-semibold text-forest-900">📜 {t.story.title}</h2>
+        <div>
+          <label className="label" htmlFor="origin">{t.story.origin}</label>
+          <input id="origin" className="input" maxLength={200} value={fields.origin} onChange={set("origin")} placeholder={t.story.originPlaceholder} />
+        </div>
+        <div>
+          <label className="label" htmlFor="story">{t.story.story}</label>
+          <textarea id="story" className="input min-h-28 [field-sizing:content]" maxLength={5000} value={fields.story} onChange={set("story")} placeholder={t.story.storyPlaceholder} />
+        </div>
+      </section>
+      <ImageSection
+        title={t.story.memories}
+        addLabel={t.story.addMemories}
+        role="memory"
+        images={images.filter((img) => img.role === "memory")}
+        onAdd={(files) => addFiles(files, "memory")}
+        onUpdate={updateImage}
+        onRemove={removeImage}
+      />
+
       {error && <p className="text-sm text-red-700">{error}</p>}
 
       <div className="glass sticky bottom-[calc(5.75rem+env(safe-area-inset-bottom))] z-20 flex gap-3 rounded-2xl px-4 py-3 shadow-lifted md:bottom-3 [&>*]:min-h-11 [&>*]:flex-1 sm:[&>*]:flex-none">
@@ -440,7 +463,7 @@ function ImageSection(props: {
 }) {
   const { t } = useI18n();
   const inputRef = useRef<HTMLInputElement>(null);
-  const otherRole: ImageRole = props.role === "gallery" ? "source" : "gallery";
+  const otherRole: ImageRole | null = props.role === "gallery" ? "source" : props.role === "source" ? "gallery" : null;
 
   return (
     <section className="card p-5 sm:p-6">
@@ -469,9 +492,11 @@ function ImageSection(props: {
                   {t.form.setCover}
                 </button>
               )}
-              <button type="button" className="rounded-lg px-2 py-2 text-left hover:bg-sage-100 sm:py-1" onClick={() => props.onUpdate(img.key, { role: otherRole, is_cover: false })}>
-                {otherRole === "gallery" ? t.form.moveToGallery : t.form.moveToSources}
-              </button>
+              {otherRole && (
+                <button type="button" className="rounded-lg px-2 py-2 text-left hover:bg-sage-100 sm:py-1" onClick={() => props.onUpdate(img.key, { role: otherRole, is_cover: false })}>
+                  {otherRole === "gallery" ? t.form.moveToGallery : t.form.moveToSources}
+                </button>
+              )}
               <button type="button" className="rounded-lg px-2 py-2 text-left text-red-700 hover:bg-red-50 sm:py-1" onClick={() => props.onRemove(img.key)}>
                 {t.form.remove}
               </button>
@@ -502,7 +527,9 @@ function ImageSection(props: {
   );
 }
 
-function toFields(r?: Partial<Omit<RecipeDraft, "notes" | "category"> & { notes: string | null; category: string | null }>): Fields {
+function toFields(
+  r?: Partial<Omit<RecipeDraft, "notes" | "category" | "origin" | "story"> & { notes: string | null; category: string | null; origin: string | null; story: string | null }>,
+): Fields {
   const num = (n: number | null | undefined) => (n == null ? "" : String(n));
   return {
     title: r?.title ?? "",
@@ -511,6 +538,8 @@ function toFields(r?: Partial<Omit<RecipeDraft, "notes" | "category"> & { notes:
     cook_minutes: num(r?.cook_minutes),
     ingredients: (r?.ingredients ?? []).join("\n"),
     notes: r?.notes ?? "",
+    origin: r?.origin ?? "",
+    story: r?.story ?? "",
     category: r?.category ?? "",
     tags: (r?.tags ?? []).join(", "),
     language: r?.language ?? null,
@@ -535,6 +564,8 @@ function toDraft(f: Fields, steps: Step[]): RecipeDraft {
     ingredients: f.ingredients.split("\n"),
     steps: steps.map((s) => s.text),
     notes: f.notes,
+    origin: f.origin,
+    story: f.story,
     category: f.category,
     tags: f.tags.split(","),
     language: f.language,

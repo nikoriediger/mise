@@ -199,6 +199,27 @@ await as(A, async () => {
 });
 
 // ---------------------------------------------------------------------------
+// Favorites, story, cooking diary
+// ---------------------------------------------------------------------------
+await as(B, async () => {
+  ok(!(await tryQ(`insert into public.favorites (user_id, recipe_id) values ($1, $2)`, [B, rPapa])).error, "Niko can favorite Papa's recipe");
+  ok(Boolean((await tryQ(`insert into public.favorites (user_id, recipe_id) values ($1, $2)`, [A, rPapa])).error), "Niko cannot add favorites for Papa");
+  const log = await tryQ(`insert into public.cook_log (recipe_id, user_id, rating, comment, photo_path) values ($1, $2, 5, 'Super!', $3) returning id`, [rPapa, B, `${fam}/${rPapa}/log-1.webp`]);
+  ok(!log.error, "Niko can log that he cooked Papa's recipe");
+  ok(Boolean((await tryQ(`insert into public.cook_log (recipe_id, user_id, rating) values ($1, $2, 9)`, [rPapa, B])).error), "ratings must be 1-5");
+  await db.query(`insert into storage.objects (bucket_id, name) values ('recipe-images', $1)`, [`${fam}/${rPapa}/log-1.webp`]);
+  ok((await rows(`delete from storage.objects where name = $1 returning id`, [`${fam}/${rPapa}/log-1.webp`])).length === 1, "diary authors can delete their own photo");
+  ok((await rows(`update public.recipes set story = 'hacked' where id = $1 returning id`, [rPapa])).length === 0, "only the owner can write a recipe's story");
+});
+await as(A, async () => {
+  ok((await rows(`select recipe_id from public.favorites`)).length === 0, "favorites are private");
+  ok((await rows(`select id from public.cook_log where recipe_id = $1`, [rPapa])).length === 1, "Papa sees who cooked his recipe");
+  ok((await rows(`delete from public.cook_log where recipe_id = $1 returning id`, [rPapa])).length === 0, "Papa cannot delete Niko's diary entry");
+  ok((await rows(`update public.recipes set origin = 'Von Oma Anna, 1965', story = 'Gab es immer an Weihnachten.' where id = $1 returning id`, [rPapa])).length === 1, "the owner can add origin and story");
+  ok(!(await tryQ(`insert into public.recipe_images (recipe_id, family_id, storage_path, role) values ($1, $2, $3, 'memory')`, [rPapa, fam, `${fam}/${rPapa}/memory.webp`])).error, "memory photos are a valid image kind");
+});
+
+// ---------------------------------------------------------------------------
 // Outsider
 // ---------------------------------------------------------------------------
 const STRANGER = "00000000-0000-0000-0000-00000000000f";

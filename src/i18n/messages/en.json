@@ -286,5 +286,52 @@
   },
   "offline": {
     "banner": "Offline – recently viewed recipes are available"
+  },
+  "favorites": {
+    "add": "Add to favorites",
+    "remove": "Remove from favorites",
+    "filter": "❤️ Favorites",
+    "recentlyCooked": "🍳 Recently cooked",
+    "none": "No favorites yet. Tap the ♡ on a recipe."
+  },
+  "story": {
+    "title": "Origin & story",
+    "origin": "Origin",
+    "originPlaceholder": "e.g. From Grandma Anna, around 1965",
+    "story": "Story & memories",
+    "storyPlaceholder": "When did you have this dish? Who came up with it? What does it remind you of?",
+    "memories": "Memory photos",
+    "addMemories": "Add photos"
+  },
+  "cookLog": {
+    "title": "Cooking diary",
+    "cookedToday": "Cooked today",
+    "dialogTitle": "How was it?",
+    "date": "When?",
+    "rating": "Rating",
+    "comment": "Comment",
+    "commentPlaceholder": "e.g. With less sugar – perfect!",
+    "photo": "Photo",
+    "addPhoto": "Add photo",
+    "save": "Save entry",
+    "empty": "Nobody has cooked this recipe yet.",
+    "count": {
+      "one": "cooked {n}×",
+      "other": "cooked {n}×"
+    },
+    "lastCooked": "last on {date}",
+    "deleteConfirm": "Delete this entry?",
+    "stars": {
+      "one": "{n} star",
+      "other": "{n} stars"
+    }
+  },
+  "timer": {
+    "start": "Start timer: {label}",
+    "done": "Done!",
+    "pause": "Pause",
+    "resume": "Resume",
+    "cancel": "Stop timer",
+    "running": "running"
   }
 }

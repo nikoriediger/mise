@@ -286,5 +286,52 @@
   },
   "offline": {
     "banner": "Offline – zuletzt angesehene Rezepte sind verfügbar"
+  },
+  "favorites": {
+    "add": "Zu Favoriten",
+    "remove": "Aus Favoriten entfernen",
+    "filter": "❤️ Favoriten",
+    "recentlyCooked": "🍳 Zuletzt gekocht",
+    "none": "Noch keine Favoriten. Tippe bei einem Rezept auf das ♡."
+  },
+  "story": {
+    "title": "Herkunft & Geschichte",
+    "origin": "Herkunft",
+    "originPlaceholder": "z. B. Von Oma Anna, ca. 1965",
+    "story": "Geschichte & Erinnerungen",
+    "storyPlaceholder": "Wann gab es das Rezept? Wer hat es erfunden? Was verbindet ihr damit?",
+    "memories": "Erinnerungsfotos",
+    "addMemories": "Fotos hinzufügen"
+  },
+  "cookLog": {
+    "title": "Koch-Tagebuch",
+    "cookedToday": "Heute gekocht",
+    "dialogTitle": "Wie war's?",
+    "date": "Wann?",
+    "rating": "Bewertung",
+    "comment": "Kommentar",
+    "commentPlaceholder": "z. B. Mit weniger Zucker – perfekt!",
+    "photo": "Foto",
+    "addPhoto": "Foto hinzufügen",
+    "save": "Eintragen",
+    "empty": "Noch niemand hat dieses Rezept gekocht.",
+    "count": {
+      "one": "{n}× gekocht",
+      "other": "{n}× gekocht"
+    },
+    "lastCooked": "zuletzt am {date}",
+    "deleteConfirm": "Diesen Eintrag löschen?",
+    "stars": {
+      "one": "{n} Stern",
+      "other": "{n} Sterne"
+    }
+  },
+  "timer": {
+    "start": "Timer starten: {label}",
+    "done": "Fertig!",
+    "pause": "Pause",
+    "resume": "Weiter",
+    "cancel": "Timer beenden",
+    "running": "läuft"
   }
 }

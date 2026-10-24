@@ -1,6 +1,6 @@
 import type { Locale } from "@/i18n/config";
 
-export type ImageRole = "gallery" | "source";
+export type ImageRole = "gallery" | "source" | "memory";
 
 export type Recipe = {
   id: string;
@@ -17,6 +17,8 @@ export type Recipe = {
   tags: string[];
   /** Language of the recipe's content (de/en/it), if known. */
   language: Locale | null;
+  origin: string | null;
+  story: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -56,6 +58,7 @@ export type RecipeWithImages = Recipe & {
   owner_avatar: string | null;
   /** True if the current user owns the recipe. */
   canEdit: boolean;
+  is_favorite: boolean;
   /** All cookbooks (visible to the user) that contain this recipe. */
   cookbooks: Cookbook[];
 };
@@ -67,6 +70,9 @@ export type RecipeListItem = Pick<
   owner_name: string;
   owner_avatar: string | null;
   is_mine: boolean;
+  is_favorite: boolean;
+  /** When the current user last cooked it (yyyy-mm-dd), if ever. */
+  last_cooked: string | null;
   /** Cookbooks containing the recipe (main cookbook of the owner + collections). */
   cookbook_ids: string[];
   coverUrl: string | null;
@@ -84,6 +90,8 @@ export type RecipeDraft = {
   category: string;
   tags: string[];
   language: Locale | null;
+  origin: string;
+  story: string;
 };
 
 export type FamilyMembership = {
