@@ -24,6 +24,12 @@ const ScaleContext = createContext<ScaleState | null>(null);
 export function ScaleProvider({ recipe, children }: { recipe: RecipeBasics; children: React.ReactNode }) {
   const { locale } = useI18n();
   const [amount, setAmount] = useState(recipe.servings ?? 1);
+  // The page stays alive while the recipe is edited: start over when its servings change
+  const [baseServings, setBaseServings] = useState(recipe.servings);
+  if (baseServings !== recipe.servings) {
+    setBaseServings(recipe.servings);
+    setAmount(recipe.servings ?? 1);
+  }
   const factor = recipe.servings ? amount / recipe.servings : amount;
   const scaled = useMemo(() => recipe.ingredients.map((i) => scaleIngredient(i, factor, locale)), [recipe.ingredients, factor, locale]);
   return <ScaleContext value={{ recipe, amount, setAmount, factor, scaled }}>{children}</ScaleContext>;
