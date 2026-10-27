@@ -458,5 +458,82 @@
     "listening": "Ich höre zu… sprich einfach los.",
     "denied": "Das Mikrofon ist blockiert. Erlaube den Zugriff in den Browser-Einstellungen.",
     "failed": "Die Spracherkennung hat nicht geklappt. Bitte versuche es erneut."
+  },
+  "landing": {
+    "metaTitle": "Die Rezepte deiner Familie an einem Ort",
+    "metaDescription": "Ein kostenloses Open-Source-Kochbuch für die Rezepte deiner Familie – mit Portionsrechner, Kochmodus, Einkaufsliste und Wochenplan.",
+    "tagline": "Kostenlos · Open Source · funktioniert auf dem Handy",
+    "heroTitle": "Die Rezepte deiner Familie, endlich an einem Ort.",
+    "heroText": "Schluss mit der Suche in handgeschriebenen Karten, Screenshots und alten Heften. Sammle deine Lieblingsrezepte, koche Schritt für Schritt und teile sie mit den Menschen, die dir wichtig sind.",
+    "getStarted": "Jetzt starten – kostenlos",
+    "haveAccount": "Ich habe schon ein Konto",
+    "previewTitle": "Omas Apfelkuchen",
+    "previewMeta": "Dessert · 60 Min.",
+    "previewServings": "Portionen",
+    "previewIngredients": [
+      "250 g Mehl",
+      "150 g Butter",
+      "120 g Zucker",
+      "4 Äpfel",
+      "2 Eier"
+    ],
+    "previewCook": "Kochen starten",
+    "featuresTitle": "Alles, was deine Küche braucht",
+    "features": [
+      {
+        "icon": "📖",
+        "title": "Kochbücher & Sammlungen",
+        "text": "Alle Rezepte in einem Hauptkochbuch, dazu Sammlungen wie „Weihnachten“ oder „Schnell unter der Woche“."
+      },
+      {
+        "icon": "⚖️",
+        "title": "Portionen umrechnen",
+        "text": "Für sechs statt vier Personen kochen? Alle Zutaten passen sich automatisch an."
+      },
+      {
+        "icon": "👩‍🍳",
+        "title": "Kochmodus",
+        "text": "Große Schritt-für-Schritt-Ansicht, der Bildschirm bleibt an – mit eingebauten Timern."
+      },
+      {
+        "icon": "🛒",
+        "title": "Einkaufsliste",
+        "text": "Zutaten eines Rezepts mit einem Tipp hinzufügen – privat oder mit der Familie geteilt."
+      },
+      {
+        "icon": "📅",
+        "title": "Wochenplan",
+        "text": "Plane die Woche und wisse, was es zum Abendessen gibt."
+      },
+      {
+        "icon": "🔎",
+        "title": "Suche nach Zutaten",
+        "text": "Zucchini übrig? Finde alle Rezepte, in denen sie vorkommt."
+      },
+      {
+        "icon": "🖨️",
+        "title": "Drucken & teilen",
+        "text": "Einzelne Rezepte oder das ganze Kochbuch drucken oder als Rezeptkarte teilen."
+      },
+      {
+        "icon": "📱",
+        "title": "Funktioniert offline",
+        "text": "Wie eine App aufs Handy installieren – Rezepte sind auch ohne Internet da."
+      }
+    ],
+    "familyTitle": "Gemacht fürs gemeinsame Kochen",
+    "familyText": "Lade deine Familie in ein gemeinsames Kochbuch ein. Alle tragen ihre eigenen Rezepte ein, hinterlassen Notizen und bewahren die Geschichten hinter jedem Gericht – zum Beispiel, wer es zuerst auf den Tisch gebracht hat.",
+    "familyPoints": [
+      "Gemeinsames Familienkochbuch",
+      "Notizen und Tipps zu jedem Rezept",
+      "Fotos und Geschichten zu einem Gericht",
+      "Deutsch, Englisch und Italienisch"
+    ],
+    "aiBadge": "Bald verfügbar",
+    "aiTitle": "Rezepte mit KI scannen",
+    "aiText": "Fotografiere eine handgeschriebene Karte oder eine Kochbuchseite – das Rezept füllt sich von selbst aus.",
+    "ctaTitle": "Starte heute dein Kochbuch",
+    "ctaText": "Kostenlos. Ohne Werbung. Deine Rezepte bleiben deine.",
+    "openSource": "Open Source auf GitHub"
   }
 }

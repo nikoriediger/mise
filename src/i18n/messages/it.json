@@ -458,5 +458,82 @@
     "listening": "Ti ascolto… inizia pure a parlare.",
     "denied": "Il microfono è bloccato. Consenti l'accesso nelle impostazioni del browser.",
     "failed": "Il riconoscimento vocale non ha funzionato. Riprova."
+  },
+  "landing": {
+    "metaTitle": "Le ricette della tua famiglia in un unico posto",
+    "metaDescription": "Un ricettario gratuito e open source per le ricette della tua famiglia – con porzioni regolabili, modalità cucina, lista della spesa e piano dei pasti.",
+    "tagline": "Gratis · open source · funziona sul telefono",
+    "heroTitle": "Le ricette della tua famiglia, finalmente in un unico posto.",
+    "heroText": "Basta cercare tra bigliettini scritti a mano, screenshot e vecchi quaderni. Raccogli le tue ricette preferite, cucina passo dopo passo e condividile con le persone a cui vuoi bene.",
+    "getStarted": "Inizia – è gratis",
+    "haveAccount": "Ho già un account",
+    "previewTitle": "Torta di mele della nonna",
+    "previewMeta": "Dolce · 60 min",
+    "previewServings": "Porzioni",
+    "previewIngredients": [
+      "250 g di farina",
+      "150 g di burro",
+      "120 g di zucchero",
+      "4 mele",
+      "2 uova"
+    ],
+    "previewCook": "Inizia a cucinare",
+    "featuresTitle": "Tutto ciò che serve alla tua cucina",
+    "features": [
+      {
+        "icon": "📖",
+        "title": "Ricettari e raccolte",
+        "text": "Tutte le ricette in un ricettario principale, più raccolte come “Natale” o “Cene veloci”."
+      },
+      {
+        "icon": "⚖️",
+        "title": "Porzioni regolabili",
+        "text": "Cucini per sei invece che per quattro? Tutti gli ingredienti si adattano da soli."
+      },
+      {
+        "icon": "👩‍🍳",
+        "title": "Modalità cucina",
+        "text": "Grande vista passo dopo passo che tiene acceso lo schermo, con timer integrati."
+      },
+      {
+        "icon": "🛒",
+        "title": "Lista della spesa",
+        "text": "Aggiungi gli ingredienti di una ricetta con un tocco – personale o condivisa con la famiglia."
+      },
+      {
+        "icon": "📅",
+        "title": "Piano dei pasti",
+        "text": "Pianifica la settimana e sai sempre cosa c'è per cena."
+      },
+      {
+        "icon": "🔎",
+        "title": "Cerca per ingrediente",
+        "text": "Ti sono avanzate delle zucchine? Trova tutte le ricette che le usano."
+      },
+      {
+        "icon": "🖨️",
+        "title": "Stampa e condividi",
+        "text": "Stampa una ricetta o l'intero ricettario, oppure condividi una scheda ricetta."
+      },
+      {
+        "icon": "📱",
+        "title": "Funziona offline",
+        "text": "Installala sul telefono come un'app – le ricette restano disponibili senza internet."
+      }
+    ],
+    "familyTitle": "Pensata per cucinare insieme",
+    "familyText": "Invita la tua famiglia in un ricettario condiviso. Ognuno aggiunge le proprie ricette, lascia note e conserva le storie dietro ogni piatto – come chi l'ha portato in tavola per primo.",
+    "familyPoints": [
+      "Ricettario di famiglia condiviso",
+      "Note e consigli su ogni ricetta",
+      "Foto e storie dietro un piatto",
+      "Italiano, inglese e tedesco"
+    ],
+    "aiBadge": "Presto disponibile",
+    "aiTitle": "Scansiona ricette con l'IA",
+    "aiText": "Fotografa un bigliettino scritto a mano o una pagina di un ricettario e la ricetta si compila da sola.",
+    "ctaTitle": "Inizia oggi il tuo ricettario",
+    "ctaText": "Gratis. Senza pubblicità. Le tue ricette restano tue.",
+    "openSource": "Open source su GitHub"
   }
 }

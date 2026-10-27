@@ -458,5 +458,82 @@
     "listening": "Listening… just start talking.",
     "denied": "The microphone is blocked. Allow access in your browser settings.",
     "failed": "Speech recognition didn't work. Please try again."
+  },
+  "landing": {
+    "metaTitle": "Your family's recipes in one place",
+    "metaDescription": "A free, open-source cookbook for your family's recipes – with portion scaling, cook mode, shopping list and meal plan.",
+    "tagline": "Free · open source · works on your phone",
+    "heroTitle": "Your family's recipes, finally in one place.",
+    "heroText": "Stop digging through handwritten cards, screenshots and old notebooks. Collect your favourite recipes, cook with them step by step and share them with the people you love.",
+    "getStarted": "Get started – it's free",
+    "haveAccount": "I already have an account",
+    "previewTitle": "Grandma's apple cake",
+    "previewMeta": "Dessert · 60 min",
+    "previewServings": "Servings",
+    "previewIngredients": [
+      "250 g flour",
+      "150 g butter",
+      "120 g sugar",
+      "4 apples",
+      "2 eggs"
+    ],
+    "previewCook": "Start cooking",
+    "featuresTitle": "Everything your kitchen needs",
+    "features": [
+      {
+        "icon": "📖",
+        "title": "Cookbooks & collections",
+        "text": "All your recipes in one main cookbook, plus collections like “Christmas” or “Quick weeknights”."
+      },
+      {
+        "icon": "⚖️",
+        "title": "Portion scaling",
+        "text": "Cooking for six instead of four? Every ingredient adjusts automatically."
+      },
+      {
+        "icon": "👩‍🍳",
+        "title": "Cook mode",
+        "text": "Big step-by-step view that keeps your screen on, with built-in timers."
+      },
+      {
+        "icon": "🛒",
+        "title": "Shopping list",
+        "text": "Add a recipe's ingredients with one tap – personal or shared with your family."
+      },
+      {
+        "icon": "📅",
+        "title": "Meal plan",
+        "text": "Plan the week ahead and know what's for dinner."
+      },
+      {
+        "icon": "🔎",
+        "title": "Search by ingredient",
+        "text": "Got leftover zucchini? Find every recipe that uses it."
+      },
+      {
+        "icon": "🖨️",
+        "title": "Print & share",
+        "text": "Print a single recipe or your whole cookbook, or share a recipe card."
+      },
+      {
+        "icon": "📱",
+        "title": "Works offline",
+        "text": "Install it on your phone like an app – recipes stay available without internet."
+      }
+    ],
+    "familyTitle": "Made for cooking together",
+    "familyText": "Invite your family into a shared cookbook. Everyone adds their own recipes, leaves notes and keeps the stories behind each dish – like who brought it to the table first.",
+    "familyPoints": [
+      "Shared family cookbook",
+      "Notes and tips on every recipe",
+      "Photos and stories behind a dish",
+      "English, German and Italian"
+    ],
+    "aiBadge": "Coming soon",
+    "aiTitle": "Scan recipes with AI",
+    "aiText": "Take a photo of a handwritten card or a cookbook page and the recipe fills itself in.",
+    "ctaTitle": "Start your cookbook today",
+    "ctaText": "Free to use. No ads. Your recipes stay yours.",
+    "openSource": "Open source on GitHub"
   }
 }

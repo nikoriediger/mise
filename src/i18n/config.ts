@@ -13,6 +13,9 @@ export const LOCALE_COOKIE = "NEXT_LOCALE";
 
 export const appName = process.env.NEXT_PUBLIC_APP_NAME || "mise";
 
+/** Signed-out visitors see a public landing page at /welcome (NEXT_PUBLIC_LANDING_PAGE=true). */
+export const showLanding = process.env.NEXT_PUBLIC_LANDING_PAGE === "true";
+
 export const localeFlags: Record<Locale, string> = { de: "🇩🇪", en: "🇬🇧", it: "🇮🇹" };
 
 /** Picks the best supported language from an Accept-Language header. */

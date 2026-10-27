@@ -1,8 +1,8 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
-import { defaultLocale, isLocale, LOCALE_COOKIE, matchAcceptLanguage, type Locale } from "@/i18n/config";
+import { defaultLocale, isLocale, LOCALE_COOKIE, matchAcceptLanguage, showLanding, type Locale } from "@/i18n/config";
 
-const PUBLIC_PATHS = ["/login", "/signup"];
+const PUBLIC_PATHS = ["/login", "/signup", "/welcome"];
 const LOCALE_PREFIX = /^\/(de|en|it)(?=\/|$)/;
 const ONE_YEAR = 60 * 60 * 24 * 365;
 
@@ -61,7 +61,7 @@ export async function proxy(request: NextRequest) {
 
   const isPublic = PUBLIC_PATHS.some((p) => pathname === p || pathname.startsWith(`${p}/`));
   if (!signedIn && !isPublic) {
-    return redirectWithCookies(request, response, "/login");
+    return redirectWithCookies(request, response, showLanding && pathname === "/" ? "/welcome" : "/login");
   }
   if (signedIn && isPublic) {
     return redirectWithCookies(request, response, "/");
