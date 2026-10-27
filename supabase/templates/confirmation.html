@@ -1,0 +1,42 @@
+<!--
+  Supabase Auth -> Emails -> Templates -> "Confirm sign up".
+  Subject: Confirm your email for mise
+  Paste this whole file into the message body (Source tab).
+-->
+<!doctype html>
+<html lang="en">
+  <body style="margin:0;padding:0;background-color:#eef6ea;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#eef6ea;padding:32px 16px;">
+      <tr>
+        <td align="center">
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:480px;background-color:#fbfdf8;border:1px solid #d4e6cc;border-radius:16px;">
+            <tr>
+              <td style="padding:32px 32px 8px 32px;font-family:Georgia,'Times New Roman',serif;font-size:28px;font-weight:bold;color:#1f3524;">
+                mise
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:8px 32px 0 32px;font-family:Helvetica,Arial,sans-serif;font-size:16px;line-height:1.5;color:#1f3524;">
+                <p style="margin:0 0 16px 0;">Welcome to your new cookbook!</p>
+                <p style="margin:0 0 24px 0;">Please confirm your email address so you can start collecting your recipes.</p>
+              </td>
+            </tr>
+            <tr>
+              <td align="center" style="padding:0 32px 24px 32px;">
+                <a href="{{ .ConfirmationURL }}" style="display:inline-block;background-color:#4a7c4e;color:#ffffff;font-family:Helvetica,Arial,sans-serif;font-size:16px;font-weight:bold;text-decoration:none;padding:14px 28px;border-radius:999px;">
+                  Confirm email
+                </a>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:0 32px 32px 32px;font-family:Helvetica,Arial,sans-serif;font-size:13px;line-height:1.5;color:#5b7158;">
+                <p style="margin:0 0 8px 0;">After confirming, sign in with your email and password.</p>
+                <p style="margin:0;">Didn't sign up for mise? Just ignore this email.</p>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>
